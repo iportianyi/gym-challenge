@@ -171,3 +171,19 @@ endpoint loads rounds and guesses of all listed games in two queries (`IN (...)`
 
 Alembic `0002` runs at startup like `0001`. Rollback: `alembic downgrade 0001` drops `guess` and `round` (rounds are
 lost, games stay), then deploy the previous image.
+
+## Implementation notes
+
+- **D3, conditional `UPDATE` refreshes the session.** `session.exec(update(Round)...)` synchronises the `Round`
+  objects already loaded in the session, so after it the current round already has `actual`. The first version
+  built the list of played rounds after the `UPDATE` and then appended the current round again: it was counted
+  twice and a game ended at 4 wins. The API tests "Full game through the API" and "… after the end" caught it before
+  the commit; the list is now taken before the `UPDATE` (comment in `enter_actual`).
+- **Round 1 on create** needs the game id, so `create_game` flushes the game before adding the round; both are in
+  one commit.
+- **Tests beyond the scenarios:** two guards of `settle` (a round after the win, guesses from other players) and two
+  migration tests (a database stopped at `0001` with a game becomes playable; `downgrade 0001` → `upgrade head`).
+- **Red run:** `test_rules.py` fails at collection (`No module named 'app.rules'`), which stops pytest; the red run
+  was repeated with `--continue-on-collection-errors` to show every failing test.
+- **Real volume (task 5.1):** the human's `app` container was already running; `up --build` recreated it and
+  `down` stopped it. The volume and its games are intact (`docs/autonomy-log.md` row 54).
