@@ -42,6 +42,7 @@ def test_delete_to_the_health_endpoint(client: TestClient) -> None:
     response = client.delete("/api/health")
 
     assert response.status_code == 405
+    assert response.headers["content-type"].startswith("application/json")
     assert response.headers["allow"] == "GET"
 
 

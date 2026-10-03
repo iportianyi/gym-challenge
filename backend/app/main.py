@@ -48,7 +48,8 @@ def create_app(frontend_dir: Path | None = None) -> FastAPI:
     # Must stay the LAST /api route: it answers 404 JSON for any unknown /api path and any method.
     # Without it, app.frontend() would serve index.html to a browser (Accept: text/html)
     # that asks for /api/<unknown>.
-    # One function for all methods on purpose: it is one behavior (404), not several operations.
+    # One function for all methods on purpose: one fallback behaviour (404, or 405 + Allow when the
+    # path exists for other methods), not several operations.
     api.add_api_route(
         "/{path:path}", api_fallback(api), methods=API_METHODS, include_in_schema=False
     )
