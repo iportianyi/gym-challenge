@@ -64,6 +64,6 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 7. Review and check
 
-- [ ] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+- [x] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   docs/reviews/add-game-setup.md
-- [ ] 7.2 Run the project check command and quote its summary line
+- [x] 7.2 Run the project check command and quote its summary line
