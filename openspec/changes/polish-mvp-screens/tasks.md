@@ -5,15 +5,15 @@ backend, API, Docker or dependency changes.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/App.test.tsx`: the greeting scenarios with `Gym Challenge` (the failing request becomes
+- [x] 1.1 `frontend/src/App.test.tsx`: the greeting scenarios with `Gym Challenge` (the failing request becomes
   `GET /api/players`) and the new scenario "No server status"; delete the four tests of the removed requirement
   (design D4)
-- [ ] 1.2 `frontend/src/Games.test.tsx`: "Successful create" asserts the address `/games/7` and the heading
+- [x] 1.2 `frontend/src/Games.test.tsx`: "Successful create" asserts the address `/games/7` and the heading
   `Гра: Присідання` (the stub answers `GET /api/games/7` with a game detail); one test per scenario of "The form
   names the other players' emails"
-- [ ] 1.3 Run `env UID=$(id -u) GID=$(id -g) docker compose --profile check run --rm --no-deps frontend-check vitest
+- [x] 1.3 Run `env UID=$(id -u) GID=$(id -g) docker compose --profile check run --rm --no-deps frontend-check vitest
   run` and quote the failing lines; every test outside these scenarios still passes
-- [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for game open after create, email hint and the
+- [x] 1.4 Commit the failing tests on their own (`test: red scenarios for game open after create, email hint and the
   plain heading`), the message naming the four deleted status tests and why
 
 ## 2. Implementation

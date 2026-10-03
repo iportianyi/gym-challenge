@@ -1,4 +1,4 @@
-// UI scenarios from openspec/changes/add-game-setup/specs/players/spec.md and specs/games/spec.md.
+// UI scenarios from the players and games specs (add-game-setup, add-game-screen, polish-mvp-screens).
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -33,11 +33,17 @@ const jsonResponse = (status: number, body: unknown) =>
 type Call = { url: string; method: string; headers: Headers; body: unknown };
 
 /**
- * A fake API: health is up, players are the defaults, games come from `games`; POST answers `postAnswer`;
- * `GET /api/games/{id}` answers `detail` (404 without it).
+ * A fake API: health is up, players are the defaults (or `playersStatus` with no list), games come from `games`;
+ * POST answers `postAnswer`; `GET /api/games/{id}` answers `detail` (404 without it).
  */
 function stubApi(
-  options: { games?: unknown[]; gamesStatus?: number; postAnswer?: [number, unknown]; detail?: unknown } = {},
+  options: {
+    games?: unknown[];
+    gamesStatus?: number;
+    playersStatus?: number;
+    postAnswer?: [number, unknown];
+    detail?: unknown;
+  } = {},
 ) {
   const games = [...(options.games ?? [])];
   const calls: Call[] = [];
@@ -49,7 +55,9 @@ function stubApi(
       const body = typeof init.body === "string" ? JSON.parse(init.body) : undefined;
       calls.push({ url, method, headers: new Headers(init.headers), body });
       if (url === "/api/health") return jsonResponse(200, { status: "ok" });
-      if (url === "/api/players") return jsonResponse(200, PLAYERS);
+      if (url === "/api/players") {
+        return options.playersStatus === undefined ? jsonResponse(200, PLAYERS) : jsonResponse(options.playersStatus, null);
+      }
       if (url === "/api/games" && method === "GET") {
         return jsonResponse(options.gamesStatus ?? 200, options.gamesStatus === 401 ? { detail: "Unknown player" } : games);
       }
@@ -184,16 +192,31 @@ describe("games: The app lists my games", () => {
 });
 
 describe("games: The app creates a game from a form", () => {
-  it("successful create sends the body and shows the new game in my games", async () => {
+  it("successful create sends the body and opens the new game", async () => {
     localStorage.setItem(STORAGE_KEY, "1");
-    const calls = stubApi({ games: [] });
+    const created = { ...GAME, id: 7 };
+    const calls = stubApi({
+      games: [],
+      postAnswer: [201, created],
+      detail: {
+        ...created,
+        final_penalty: null,
+        rounds: [],
+        current_round: {
+          number: 1,
+          guesses: [
+            { player_id: 1, guessed: false, value: null },
+            { player_id: 2, guessed: false, value: null },
+          ],
+        },
+      },
+    });
     render(<App />);
 
     await fillAndSubmitForm();
 
-    const list = await screen.findByRole("list", { name: "Мої ігри" });
-    expect(within(list).getByText("Тренер")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Мої ігри" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Гра: Присідання" })).toBeTruthy();
+    expect(window.location.pathname).toBe("/games/7");
     const [post] = gameCalls(calls, "POST");
     expect(post.headers.get("X-Player-Id")).toBe("1");
     expect(post.body).toEqual({
@@ -236,6 +259,53 @@ describe("games: The app creates a game from a form", () => {
 
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
     expect(gameCalls(calls, "POST")).toHaveLength(0);
+  });
+});
+
+describe("games: The form names the other players' emails", () => {
+  async function openForm() {
+    fireEvent.click(await screen.findByRole("button", { name: "Нова гра" }));
+    await screen.findByRole("heading", { name: "Нова гра" });
+  }
+
+  it("Клієнт sees Тренер's email", async () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    stubApi();
+    render(<App />);
+    await screen.findByText("Ти граєш як Клієнт");
+
+    await openForm();
+
+    const hint = await screen.findByText("Тренер: coach@gym.local");
+    expect(screen.queryByText("Клієнт: client@gym.local")).toBeNull();
+    const field = screen.getByLabelText("Email суперника") as HTMLInputElement;
+    expect(field.value).toBe("");
+    // The field is described by the hint lines (assistive technology reads them with the field).
+    const described = (field.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id));
+    expect(described.some((element) => element?.contains(hint))).toBe(true);
+  });
+
+  it("Тренер sees Клієнт's email", async () => {
+    localStorage.setItem(STORAGE_KEY, "2");
+    stubApi();
+    render(<App />);
+    await screen.findByText("Ти граєш як Тренер");
+
+    await openForm();
+
+    expect(await screen.findByText("Клієнт: client@gym.local")).toBeTruthy();
+    expect(screen.queryByText("Тренер: coach@gym.local")).toBeNull();
+  });
+
+  it("players could not be loaded: the form works without the hint", async () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    stubApi({ playersStatus: 500 });
+    render(<App />);
+
+    await openForm();
+
+    expect(screen.getByLabelText("Email суперника")).toBeTruthy();
+    expect(screen.queryByText(/@gym\.local/)).toBeNull();
   });
 });
 
