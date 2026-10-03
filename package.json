@@ -6,7 +6,9 @@
     "spec:check": "node scripts/spec-check.mjs",
     "openspec:pin": "node scripts/openspec-pin.mjs",
     "agent:log": "node scripts/agent-log-summary.mjs",
-    "hooks:selftest": "node scripts/hooks-selftest.mjs"
+    "hooks:selftest": "node scripts/hooks-selftest.mjs",
+    "secrets:selftest": "node scripts/secret-scan.mjs --self-test",
+    "githooks:install": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@fission-ai/openspec": "1.14.0"

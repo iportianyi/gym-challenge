@@ -9,7 +9,7 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
 
 - `docker compose up --build` — застосунок на http://localhost:8000 (API під `/api`, фронтенд на `/`).
 - `make check` — **definition of done**: ruff, ty, pytest, ESLint, tsc, Vitest у Docker + `pnpm spec:check` на хості;
-  успіх закінчується рядком `check: OK (backend, frontend, spec)`. Перед «готово» — запустити й процитувати.
+  успіх закінчується рядком `check: OK (backend, frontend, spec, secrets)`. Перед «готово» — запустити й процитувати.
 - Інструменти бекенду/фронтенду на хості не встановлені: лише через `make check` або
   `docker compose --profile check run --rm backend-check|frontend-check <команда>`.
 - Docker у контейнерах розв'язує DNS лише з увімкненим VPN людини (`/etc/docker/daemon.json`); збій DNS — питати людину.
@@ -43,6 +43,9 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
   Після `pnpm exec openspec update` — обов'язково `pnpm openspec:pin`; згенеровані `openspec-*` скіли й `/opsx:*` руками не правити.
 - Не редагувати `.agent-log/`, `.claude/hooks/`, `.claude/settings.json` без явного прохання людини — це шар спостереження.
 - Не вставляти секрети в команди: команди потрапляють у закомічений журнал.
+- **Секрет-гейт на push:** `.githooks/pre-push` → `scripts/secret-scan.mjs` сканує додані рядки вихідних комітів і
+  блокує push при збігу (значення не друкує). Активація на клоні — `pnpm githooks:install` (`core.hooksPath`,
+  лише цей репо); `make check` падає, якщо гейт не активний. Не обходити `--no-verify`; збіг — показати людині.
 - MCP: **Context7** — актуальна документація бібліотек (правило `.claude/rules/context7.md`);
   **Playwright** — браузер для перевірки UI на `localhost` (скріни в `.playwright-mcp/`, gitignored).
 - Skills у `.claude/skills/`: `fastapi` (офіційний), `frontend-design`, `web-design-reviewer`, `context7-mcp`, `openspec-*` (згенеровані).

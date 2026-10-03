@@ -11,10 +11,10 @@ COMPOSE := docker compose --profile check
 BACKEND := $(COMPOSE) run --rm --no-deps backend-check
 FRONTEND := $(COMPOSE) run --rm --no-deps frontend-check
 
-.PHONY: check check-build check-backend check-frontend check-spec
+.PHONY: check check-build check-backend check-frontend check-spec check-secrets
 
-check: check-build check-backend check-frontend check-spec
-	@echo "check: OK (backend, frontend, spec)"
+check: check-build check-backend check-frontend check-spec check-secrets
+	@echo "check: OK (backend, frontend, spec, secrets)"
 
 check-build:
 	@echo "==> build check images"
@@ -44,3 +44,9 @@ check-frontend:
 check-spec:
 	@echo "==> spec: pnpm spec:check"
 	@pnpm --silent spec:check
+
+# The pre-push secret gate must itself work: real pushes into a temp repo (blocked with a fake key, allowed without).
+check-secrets:
+	@echo "==> secrets: pre-push gate self-test"
+	@node scripts/secret-scan.mjs --self-test | tail -1
+	@test "$$(git config core.hooksPath)" = ".githooks" || { echo "pre-push gate not active: run pnpm githooks:install"; exit 1; }

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Blocks `git push` when the outgoing commits add a secret-shaped string. See scripts/secret-scan.mjs.
+exec node scripts/secret-scan.mjs --pre-push "$@"

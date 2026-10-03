@@ -16,7 +16,9 @@
       "Bash(pnpm openspec:pin)",
       "Bash(pnpm agent:log *)",
       "Bash(pnpm hooks:selftest)",
-      "Bash(make check)"
+      "Bash(make check)",
+      "Bash(node scripts/secret-scan.mjs *)",
+      "Bash(pnpm secrets:selftest)"
     ],
     "ask": [
       "Bash(git push *)",
