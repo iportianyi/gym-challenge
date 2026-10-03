@@ -5,17 +5,17 @@ dependencies, no Docker or frontend changes.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `backend/tests/test_rules.py`: one test per `scoring` scenario calling `app.rules.settle` (design D1;
+- [x] 1.1 `backend/tests/test_rules.py`: one test per `scoring` scenario calling `app.rules.settle` (design D1;
   import inside each test or at module level — the red run fails with `ModuleNotFoundError: app.rules`)
-- [ ] 1.2 `backend/tests/test_rounds.py`: one test per `rounds` scenario and the `scoring` "Full game through the API"
+- [x] 1.2 `backend/tests/test_rounds.py`: one test per `rounds` scenario and the `scoring` "Full game through the API"
   scenario through `TestClient`, with a `play(...)` helper (design D8); plus one migration test: a database upgraded
   only to `0001` with a game inserted by stdlib `sqlite3`, then the app starts on it and `GET /api/games/1` shows
   `current_round.number` `1` and a guess is accepted
-- [ ] 1.3 `backend/tests/test_games.py`: update the exact JSON of "Клієнт starts a game against Тренер" to the
+- [x] 1.3 `backend/tests/test_games.py`: update the exact JSON of "Клієнт starts a game against Тренер" to the
   MODIFIED scenario (adds `score` and `winner_id`, still an exact equality) and add "Score after one round"
-- [ ] 1.4 Run `docker compose --profile check run --rm backend-check pytest` and quote the failing lines; all
+- [x] 1.4 Run `docker compose --profile check run --rm backend-check pytest` and quote the failing lines; all
   previously passing tests other than the updated create scenario still pass
-- [ ] 1.5 Commit the failing tests on their own (`test: red scenarios for rounds, scoring and game score`)
+- [x] 1.5 Commit the failing tests on their own (`test: red scenarios for rounds, scoring and game score`)
 
 ## 2. Rules module
 

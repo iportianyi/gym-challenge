@@ -1,4 +1,4 @@
-"""API scenarios from openspec/changes/add-game-setup/specs/games/spec.md."""
+"""API scenarios from openspec/specs/games/spec.md and the add-rounds-and-scoring games delta."""
 
 import sqlite3
 from collections.abc import Callable
@@ -38,6 +38,8 @@ def test_client_starts_a_game_against_coach(client: TestClient) -> None:
         "step_reps": 5,
         "final_reps": 30,
         "status": "active",
+        "score": [{"player_id": 1, "points": 0}, {"player_id": 2, "points": 0}],
+        "winner_id": None,
     }
 
 
@@ -152,6 +154,25 @@ def test_other_players_games_are_not_listed(client: TestClient, database_url: st
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+# Requirement: Listed games show their current score (add-rounds-and-scoring)
+
+
+def test_score_after_one_round(client: TestClient) -> None:
+    game_id = client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY).json()["id"]
+    for headers, value in ((AS_CLIENT, 40), (AS_COACH, 55)):
+        response = client.post(
+            f"/api/games/{game_id}/guesses", headers=headers, json={"value": value}
+        )
+        assert response.status_code == 200
+    response = client.post(f"/api/games/{game_id}/actual", headers=AS_CLIENT, json={"value": 47})
+    assert response.status_code == 200
+
+    listed = client.get("/api/games", headers=AS_COACH).json()
+
+    assert listed[0]["score"] == [{"player_id": 1, "points": 1}, {"player_id": 2, "points": 0}]
+    assert listed[0]["winner_id"] is None
 
 
 # Requirement: Games survive a restart
