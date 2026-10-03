@@ -44,13 +44,13 @@ dependencies, no Docker or frontend changes.
 
 ## 5. Run on the real volume
 
-- [ ] 5.1 `docker compose up --build -d` on the existing `gym-data` volume (the migration upgrades it in place, no
+- [x] 5.1 `docker compose up --build -d` on the existing `gym-data` volume (the migration upgrades it in place, no
   `down -v`); `curl` with `X-Player-Id: 1`: an old game shows `current_round.number` `1`; play one round on a new
   game with `curl` (two guesses, actual) and quote the `rounds` of the answer; `docker compose down` (without `-v`)
 
 ## 6. Journal
 
-- [ ] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, rules, storage, API and the Docker run, including any
+- [x] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, rules, storage, API and the Docker run, including any
   agent mistakes and human interventions; commit with `.agent-log/actions.jsonl`
 
 ## 7. Review and check
