@@ -20,6 +20,11 @@ const GAME = {
   step_reps: 5,
   final_reps: 30,
   status: "active",
+  score: [
+    { player_id: 1, points: 0 },
+    { player_id: 2, points: 0 },
+  ],
+  winner_id: null,
 };
 
 const jsonResponse = (status: number, body: unknown) =>
@@ -27,8 +32,13 @@ const jsonResponse = (status: number, body: unknown) =>
 
 type Call = { url: string; method: string; headers: Headers; body: unknown };
 
-/** A fake API: health is up, players are the defaults, games come from `games`; POST answers `postAnswer`. */
-function stubApi(options: { games?: unknown[]; gamesStatus?: number; postAnswer?: [number, unknown] } = {}) {
+/**
+ * A fake API: health is up, players are the defaults, games come from `games`; POST answers `postAnswer`;
+ * `GET /api/games/{id}` answers `detail` (404 without it).
+ */
+function stubApi(
+  options: { games?: unknown[]; gamesStatus?: number; postAnswer?: [number, unknown]; detail?: unknown } = {},
+) {
   const games = [...(options.games ?? [])];
   const calls: Call[] = [];
   vi.stubGlobal(
@@ -48,6 +58,7 @@ function stubApi(options: { games?: unknown[]; gamesStatus?: number; postAnswer?
         if (status === 201) games.unshift(answer);
         return jsonResponse(status, answer);
       }
+      if (/^\/api\/games\/\d+$/.test(url) && options.detail !== undefined) return jsonResponse(200, options.detail);
       return jsonResponse(404, { detail: "Not Found" });
     }),
   );
@@ -68,13 +79,24 @@ async function fillAndSubmitForm() {
   fireEvent.click(screen.getByRole("button", { name: "Почати гру" }));
 }
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  // jsdom keeps the address between tests; the game screen tests below move away from "/".
+  window.history.replaceState(null, "", "/");
+});
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   localStorage.clear();
+  delete (document as { visibilityState?: unknown }).visibilityState;
 });
+
+/** Makes `document.visibilityState` report `state` and fires `visibilitychange`. */
+function setVisibility(state: DocumentVisibilityState) {
+  Object.defineProperty(document, "visibilityState", { configurable: true, get: () => state });
+  document.dispatchEvent(new Event("visibilitychange"));
+}
 
 describe("players: The browser asks who is using it", () => {
   it("first open shows the picker with both players and their emails, no games", async () => {
@@ -214,5 +236,92 @@ describe("games: The app creates a game from a form", () => {
 
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
     expect(gameCalls(calls, "POST")).toHaveLength(0);
+  });
+});
+
+describe("games: The list shows each game's score and whether it is finished", () => {
+  it("active game seen by the opponent", async () => {
+    localStorage.setItem(STORAGE_KEY, "2");
+    stubApi({
+      games: [
+        {
+          ...GAME,
+          score: [
+            { player_id: 1, points: 1 },
+            { player_id: 2, points: 0 },
+          ],
+        },
+      ],
+    });
+    render(<App />);
+
+    const list = await screen.findByRole("list", { name: "Мої ігри" });
+    expect(within(list).getByLabelText("Рахунок").textContent?.replace(/\s+/g, " ").trim()).toBe("0 : 1");
+    expect(within(list).queryByText("Завершена")).toBeNull();
+  });
+
+  it("finished game", async () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    stubApi({
+      games: [
+        {
+          ...GAME,
+          status: "finished",
+          winner_id: 1,
+          score: [
+            { player_id: 1, points: 5 },
+            { player_id: 2, points: 0 },
+          ],
+        },
+      ],
+    });
+    render(<App />);
+
+    const list = await screen.findByRole("list", { name: "Мої ігри" });
+    expect(within(list).getByLabelText("Рахунок").textContent?.replace(/\s+/g, " ").trim()).toBe("5 : 0");
+    expect(within(list).getByText("Завершена")).toBeTruthy();
+  });
+});
+
+describe("games: The list is reloaded when the player returns to it", () => {
+  it("back from a game", async () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    const calls = stubApi({
+      games: [GAME],
+      detail: {
+        ...GAME,
+        final_penalty: null,
+        rounds: [],
+        current_round: {
+          number: 1,
+          guesses: [
+            { player_id: 1, guessed: false, value: null },
+            { player_id: 2, guessed: false, value: null },
+          ],
+        },
+      },
+    });
+    render(<App />);
+
+    const list = await screen.findByRole("list", { name: "Мої ігри" });
+    fireEvent.click(within(list).getByRole("link"));
+    await screen.findByRole("heading", { name: "Гра: Присідання" });
+    fireEvent.click(screen.getByRole("link", { name: "Мої ігри" }));
+
+    await screen.findByRole("heading", { name: "Мої ігри" });
+    await waitFor(() => expect(gameCalls(calls, "GET")).toHaveLength(2));
+  });
+
+  it("tab becomes visible again", async () => {
+    localStorage.setItem(STORAGE_KEY, "1");
+    const calls = stubApi({ games: [GAME] });
+    render(<App />);
+    await screen.findByRole("list", { name: "Мої ігри" });
+    await waitFor(() => expect(gameCalls(calls, "GET")).toHaveLength(1));
+
+    setVisibility("hidden");
+    setVisibility("visible");
+
+    await waitFor(() => expect(gameCalls(calls, "GET")).toHaveLength(2));
   });
 });

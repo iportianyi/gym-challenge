@@ -5,15 +5,15 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/GameScreen.test.tsx`: one test per `game-screen` scenario through `<App/>`, the address set
+- [x] 1.1 `frontend/src/GameScreen.test.tsx`: one test per `game-screen` scenario through `<App/>`, the address set
   by `window.history.replaceState` before `render` (design D1), with the API stub and `detail(...)` builder of
   design D9; polling scenarios with fake timers and a stubbed `document.visibilityState` (design D5)
-- [ ] 1.2 `frontend/src/Games.test.tsx`: the `GAME` fixture gains `score` `[{"player_id": 1, "points": 0},
+- [x] 1.2 `frontend/src/Games.test.tsx`: the `GAME` fixture gains `score` `[{"player_id": 1, "points": 0},
   {"player_id": 2, "points": 0}]` and `winner_id` `null` (the real API shape); add one test per scenario of the two
   ADDED `games` requirements. No existing assertion changes
-- [ ] 1.3 Run `docker compose --profile check run --rm frontend-check pnpm test` and quote the failing lines; all
+- [x] 1.3 Run `docker compose --profile check run --rm frontend-check pnpm test` and quote the failing lines; all
   tests that passed before still pass
-- [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for the game screen and list score`)
+- [x] 1.4 Commit the failing tests on their own (`test: red scenarios for the game screen and list score`)
 
 ## 2. Dependency
 
