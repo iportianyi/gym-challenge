@@ -1,6 +1,7 @@
 /* Visual direction «Табло» (add-game-setup design, D7): the gym's LED scoreboard.
    Navy ground, amber seven-segment digits for every number, system sans for all words, red only for errors.
-   Contrast on --navy: --white 15:1, --muted 8:1, --amber 10:1, --error-text 9:1. --steel is for lines only. */
+   Contrast measured in the browser (WCAG): on --navy --white 15.8:1, --muted 7.9:1, --amber 9.7:1; on --panel
+   --amber 8.7:1, --muted 7.1:1; --error-text on its tinted box 9.0:1. --steel is for lines only. */
 @font-face {
   font-family: "DSEG7";
   src: url("dseg/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2") format("woff2");
