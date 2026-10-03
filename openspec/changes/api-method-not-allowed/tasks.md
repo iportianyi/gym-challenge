@@ -7,10 +7,10 @@
 
 ## 2. Implementation
 
-- [x] 2.1 Make the `/api` catch-all take the `Request`, find routes that partially match it and answer 405 with a sorted `Allow` header, else 404; verify all backend tests pass in `make check`, including the existing `service-health` and `web-shell` ones
+- [x] 2.1 Make the `/api` catch-all take the `Request`, find routes that partially match it and answer 405 with a sorted `Allow` header, else 404 (implemented differently — per-method full-match probe, `Allow` in `API_METHODS` order; see design.md «Implementation notes»); verify all backend tests pass in `make check`, including the existing `service-health` and `web-shell` ones
 - [x] 2.2 Verify against the running app (`docker compose up --build -d`) with `curl`: `POST /api/health` → 405 `allow: GET`, `POST /api/does-not-exist` → 404, `GET /api/health` → 200; quote the output
 
 ## 3. Review and verification
 
-- [ ] 3.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to docs/reviews/api-method-not-allowed.md
-- [ ] 3.2 Run the project check command and quote its summary line
+- [x] 3.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to docs/reviews/api-method-not-allowed.md
+- [x] 3.2 Run the project check command and quote its summary line

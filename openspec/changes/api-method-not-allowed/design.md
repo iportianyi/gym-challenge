@@ -27,6 +27,10 @@ So narrowing the catch-all's methods breaks "Unknown API paths return 404".
 
 ## Decisions
 
+> Superseded during apply: the partial-match walk below did not work with FastAPI 0.142's opaque included
+> routers — see **Implementation notes** at the end for what is actually implemented and why. Kept as the record
+> of the plan.
+
 - **Keep one catch-all for all methods; decide 404 vs 405 inside it.** The handler receives the `Request`, walks
   the app's routes and asks each `APIRoute` (other than itself) whether it matches the request scope. A partial match
   (path matches, method does not) means the path exists: collect that route's methods and raise 405 with
