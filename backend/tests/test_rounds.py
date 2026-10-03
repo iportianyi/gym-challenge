@@ -321,7 +321,16 @@ def test_restart_in_the_middle_of_a_round(open_client: Callable[[], TestClient])
 
 
 def test_full_game_through_the_api(client: TestClient) -> None:
-    game_id = won_game(client)
+    game_id = new_game(client)
+    for _ in range(4):
+        play(client, game_id, 40, 60, 45)
+    # "Four points is not the end", through the API: status is stored, not returned by settle.
+    four = detail(client, game_id, AS_COACH)
+    assert four["status"] == "active"
+    assert four["winner_id"] is None
+    assert four["final_penalty"] is None
+    assert four["score"] == [{"player_id": 1, "points": 4}, {"player_id": 2, "points": 0}]
+    play(client, game_id, 40, 60, 45)
 
     listed = client.get("/api/games", headers=AS_COACH).json()
 
@@ -333,6 +342,14 @@ def test_full_game_through_the_api(client: TestClient) -> None:
     game = detail(client, game_id, AS_COACH)
     assert game["current_round"] is None
     assert game["final_penalty"] == {"player_id": 2, "reps": 30}
+    # "Fifth point ends the game", through the API: streak penalties and none for the last round.
+    assert [settled["penalty"] for settled in game["rounds"]] == [
+        {"player_id": 2, "reps": 10},
+        {"player_id": 2, "reps": 15},
+        {"player_id": 2, "reps": 20},
+        {"player_id": 2, "reps": 25},
+        None,
+    ]
 
 
 # Migration 0002 on data from add-game-setup (design, Risks; tasks 1.2 and 3.1)
