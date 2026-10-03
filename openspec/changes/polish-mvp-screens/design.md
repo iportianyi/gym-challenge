@@ -51,3 +51,10 @@ wanted. The two greeting tests change their text and their failing request (`/ap
 - [Without the status a dead server is less visible on the first screen] → the picker already shows
   `Не вдалося завантажити гравців.`, the list `Не вдалося завантажити ігри.`, the game `Немає зв'язку, пробуємо ще`.
 - [The hint shows emails on screen] → they are already shown on the picker (`players` spec); two default players.
+
+## Implementation notes
+
+- The `--ok` colour token in `tokens.css` was removed with the status: the status dot was its only user (found by
+  `grep`; named in `d006db8`). Not in D3 at planning time.
+- Task 3.1 said "at archive", but the Purpose of `openspec/specs/web-shell/spec.md` was edited during apply
+  (`52279e6`), so the reviewer could see it. Archive only adds the deltas; the edited Purpose stays.

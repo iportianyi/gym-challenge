@@ -32,6 +32,6 @@ backend, API, Docker or dependency changes.
 
 - [x] 3.1 At archive, update the Purpose of `openspec/specs/web-shell/spec.md` (it still promises a reachability
   signal) and verify `pnpm spec:check` passes
-- [ ] 3.2 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+- [x] 3.2 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   `docs/reviews/polish-mvp-screens.md`
-- [ ] 3.3 Run the project check command and quote its summary line
+- [x] 3.3 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)` (pytest 63 passed, Vitest 68 passed)
