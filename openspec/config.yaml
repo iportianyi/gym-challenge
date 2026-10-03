@@ -19,4 +19,5 @@ rules:
   tasks:
     - Scenario tests come first. The first task writes one test per spec scenario, runs them against the current code and quotes the failing lines; implementation tasks follow.
     - The failing tests are committed on their own before the implementation that turns them green.
+    - The second-to-last task is "Run the change-reviewer subagent on a review packet and save its reply verbatim to docs/reviews/<change>.md".
     - The last task is "Run the project check command and quote its summary line".
