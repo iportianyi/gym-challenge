@@ -26,21 +26,21 @@ dependencies, no Docker or frontend changes.
 
 ## 3. Storage
 
-- [ ] 3.1 `backend/app/models.py`: `Round` and `Guess` with the unique constraints of design D2; migration
+- [x] 3.1 `backend/app/models.py`: `Round` and `Guess` with the unique constraints of design D2; migration
   `0002_rounds_and_guesses.py` creating both tables and round 1 for every active game, with `downgrade`.
   Verify the migration test from 1.2 passes and `alembic downgrade 0001` followed by `upgrade head` works on a test
   database (run inside the test or by hand in `backend-check`, quote the output)
 
 ## 4. API
 
-- [ ] 4.1 `backend/app/api/games.py`: `POST /api/games` also inserts round 1; `GamePublic` gains `score` and
+- [x] 4.1 `backend/app/api/games.py`: `POST /api/games` also inserts round 1; `GamePublic` gains `score` and
   `winner_id` (from `settle`), list loads rounds and guesses of all listed games in two queries (design D7). Verify the
   `games` tests pass
-- [ ] 4.2 `GET /api/games/{id}`, `POST /api/games/{id}/guesses`, `POST /api/games/{id}/actual` with the view builder
+- [x] 4.2 `GET /api/games/{id}`, `POST /api/games/{id}/guesses`, `POST /api/games/{id}/actual` with the view builder
   of design D5, the status codes and order of design D6, the `IntegrityError` and conditional `UPDATE` of design D3,
   and `game.status = "finished"` written in the settling transaction. Verify every test in `tests/test_rounds.py`
   passes, and ruff and ty are clean
-- [ ] 4.3 Commit (`feat(api): game detail, guesses and actual count with hidden guesses and scoring`)
+- [x] 4.3 Commit (`feat(api): game detail, guesses and actual count with hidden guesses and scoring`)
 
 ## 5. Run on the real volume
 
