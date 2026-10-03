@@ -1,1 +1,8 @@
 .claude/settings.local.json
+
+# secrets (only .env.example may be committed)
+.env*
+!.env.example
+
+# local-only Claude files
+CLAUDE.local.md
