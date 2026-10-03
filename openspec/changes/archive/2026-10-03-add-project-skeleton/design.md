@@ -113,5 +113,10 @@ Recorded during apply; each item changed how the plan was carried out, not what 
 - **`index.html` content (lang, viewport, `#root`) is tested in the frontend** (`src/indexHtml.test.ts`); the backend
   check container mounts only `backend/`, so backend tests assert that the server delivers the frontend's
   `index.html` and the fallback rules. End-to-end `curl` in 5.1 covers both together.
+- **`FRONTEND_DIST` has no default** (design said default `/app/frontend-dist`): unset → API only, set → the
+  build is served and `app.frontend()` fails at startup if the directory is missing. A default would make importing
+  `app.main` in tests fail, because the directory does not exist there. The runtime image sets
+  `ENV FRONTEND_DIST=/app/frontend-dist`. Recorded late — found by `change-reviewer` (criterion D, FAIL), see
+  `docs/reviews/add-project-skeleton.md`.
 - **Environment:** containers resolve DNS only with the human's VPN up — `/etc/docker/daemon.json` lists three
   VPN-only nameservers first, and glibc uses only the first three. Not changed in the repo.
