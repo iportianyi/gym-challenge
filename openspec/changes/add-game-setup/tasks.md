@@ -18,9 +18,9 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 2. Dependencies and storage
 
-- [ ] 2.1 Add `sqlmodel` and `alembic` with `uv add` in the `backend-check` container; verify `uv.lock` changed and
+- [x] 2.1 Add `sqlmodel` and `alembic` with `uv add` in the `backend-check` container; verify `uv.lock` changed and
   `docker compose --profile check build backend-check` succeeds
-- [ ] 2.2 Add `dseg` with `pnpm add` in the `frontend-check` container; verify `pnpm-lock.yaml` changed and the
+- [x] 2.2 Add `dseg` with `pnpm add` in the `frontend-check` container; verify `pnpm-lock.yaml` changed and the
   image builds
 - [ ] 2.3 `app/db.py` (engine per app, SQLite `foreign_keys` pragma, `SessionDep`), `app/models.py` (`Player`,
   `Game`), `app/migrations/` with `0001` creating both tables and the two default players; `create_app` takes

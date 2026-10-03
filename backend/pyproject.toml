@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "gym-challenge API and frontend server"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "alembic>=1.20.0",
     "fastapi[standard]>=0.142.2,<0.143",
+    "sqlmodel>=0.0.47",
 ]
 
 [dependency-groups]

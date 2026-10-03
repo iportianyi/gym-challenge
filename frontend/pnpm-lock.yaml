@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      dseg:
+        specifier: 0.46.0
+        version: 0.46.0
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -625,6 +628,10 @@ packages:
 
   dom-accessibility-api@0.5.16:
     resolution: {integrity: sha512-X7BJ2yElsnOJ30pZF4uIIDfBEVgF4XEBxL9Bxhy6dnrm5hkzqmsWHGTiHqRiITNhMyFLyAiWndIJP7Z1NTteDg==}
+
+  dseg@0.46.0:
+    resolution: {integrity: sha512-+wigrEmU4uJ75jtg26BFRoQdPXn8IVltzwI1ZDNsSoNdeO4vLpOssS/XNZNo8e3x5tBUBZd2aU0XeGhWniH8FA==}
+    engines: {node: '>=0.10.3'}
 
   electron-to-chromium@1.5.444:
     resolution: {integrity: sha512-5ss/uJfoDYDHT0lfJzT6FbcskIzROIOPf0BbbFkGcvDzoJU7i//9GDrwwIHQVmIsrAGiF3ihpADBRIsrEFt1rQ==}
@@ -1791,6 +1798,8 @@ snapshots:
   detect-libc@2.1.2: {}
 
   dom-accessibility-api@0.5.16: {}
+
+  dseg@0.46.0: {}
 
   electron-to-chromium@1.5.444: {}
 
