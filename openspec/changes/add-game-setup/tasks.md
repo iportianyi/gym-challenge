@@ -59,7 +59,7 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 6. Journal
 
-- [ ] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, backend, Docker and frontend steps, including any
+- [x] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, backend, Docker and frontend steps, including any
   agent mistakes and human interventions; commit with `.agent-log/actions.jsonl`
 
 ## 7. Review and check
