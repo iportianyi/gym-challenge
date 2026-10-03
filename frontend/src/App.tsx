@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter } from "react-router";
 
 import styles from "./App.module.css";
 import { checkHealth } from "./api/health";
@@ -31,7 +32,10 @@ export default function App() {
           {STATUS_TEXT[server]}
         </p>
       </header>
-      <PlayerSession />
+      {/* The router lives here, not in main.tsx, so tests choose the address with history.replaceState (D1). */}
+      <BrowserRouter>
+        <PlayerSession />
+      </BrowserRouter>
     </main>
   );
 }

@@ -24,14 +24,14 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 3. API client and routing
 
-- [ ] 3.1 `frontend/src/api/games.ts`: the types and `fetchGame`, `sendGuess`, `sendActual` of design D3; verify
+- [x] 3.1 `frontend/src/api/games.ts`: the types and `fetchGame`, `sendGuess`, `sendActual` of design D3; verify
   `pnpm typecheck` in `frontend-check` passes
-- [ ] 3.2 `App` wraps `PlayerSession` in `BrowserRouter`; `PlayerSession` renders the routes of design D2 below the
+- [x] 3.2 `App` wraps `PlayerSession` in `BrowserRouter`; `PlayerSession` renders the routes of design D2 below the
   player gate; `GamesPage` loads the list on mount and on `visibilitychange`; `NewGameForm` navigates to `/` on
   create and cancel; `GameList` rows link to `/games/{id}` and show `Рахунок` from the viewer's side and
   `Завершена`. Verify every test in `Games.test.tsx` and `App.test.tsx` passes and the `game-screen` scenario
   "Unknown address" passes (the other `game-screen` scenarios turn green in group 4)
-- [ ] 3.3 Commit (`feat(web): routes for my games, new game and game screen; score and finished mark in the list`)
+- [x] 3.3 Commit (`feat(web): routes for my games, new game and game screen; score and finished mark in the list`)
 
 ## 4. Game screen
 

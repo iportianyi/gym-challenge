@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router";
 
-import { fetchGames, UnknownPlayerError, type Game } from "../api/games";
 import { fetchPlayers, type Player } from "../api/players";
 import { clearPlayerId, loadPlayerId, savePlayerId } from "../playerStore";
-import GameList from "./GameList";
+import GameScreen from "./GameScreen";
+import GamesPage from "./GamesPage";
 import NewGameForm from "./NewGameForm";
 import styles from "./PlayerSession.module.css";
 import PlayerPicker from "./PlayerPicker";
@@ -11,13 +12,14 @@ import ui from "./ui.module.css";
 
 type Loaded<T> = { status: "loading" } | { status: "error" } | { status: "ready"; value: T };
 
-/** Who is playing in this browser, and that player's screens: picker → my games ⇄ new game (add-game-setup, D5). */
+/**
+ * Who is playing in this browser, and that player's screens by address (add-game-screen, D2). Without a player
+ * the picker shows on any address, which is kept, so after the pick the same route renders.
+ */
 export default function PlayerSession() {
   const [playerId, setPlayerId] = useState<number | null>(loadPlayerId);
   const [players, setPlayers] = useState<Loaded<Player[]>>({ status: "loading" });
-  // Games are tagged with the player they were loaded for, so switching players never shows someone else's list.
-  const [games, setGames] = useState<{ playerId: number; list: Loaded<Game[]> } | null>(null);
-  const [screen, setScreen] = useState<"games" | "new-game">("games");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -30,31 +32,16 @@ export default function PlayerSession() {
     return () => controller.abort();
   }, []);
 
-  useEffect(() => {
-    if (playerId === null) return;
-    const controller = new AbortController();
-    fetchGames(playerId, controller.signal).then(
-      (list) => setGames({ playerId, list: { status: "ready", value: list } }),
-      (error: unknown) => {
-        if (controller.signal.aborted) return;
-        if (error instanceof UnknownPlayerError) forgetPlayer();
-        else setGames({ playerId, list: { status: "error" } });
-      },
-    );
-    return () => controller.abort();
-  }, [playerId]);
-
   function pick(player: Player) {
     savePlayerId(player.id);
     setPlayerId(player.id);
-    setScreen("games");
   }
 
-  function forgetPlayer() {
+  // Stable, because the pages below reload their data when it changes.
+  const forgetPlayer = useCallback(() => {
     clearPlayerId();
     setPlayerId(null);
-    setGames(null);
-  }
+  }, []);
 
   if (playerId === null) {
     if (players.status === "ready") return <PlayerPicker players={players.value} onPick={pick} />;
@@ -64,7 +51,6 @@ export default function PlayerSession() {
   }
 
   const me = players.status === "ready" ? players.value.find((player) => player.id === playerId) : undefined;
-  const list = games?.playerId === playerId ? games.list : { status: "loading" as const };
 
   return (
     <div className={styles.session}>
@@ -74,22 +60,23 @@ export default function PlayerSession() {
           Змінити гравця
         </button>
       </div>
-      {screen === "new-game" ? (
-        <NewGameForm
-          playerId={playerId}
-          onCancel={() => setScreen("games")}
-          onUnknownPlayer={forgetPlayer}
-          onCreated={(game) => {
-            const before = list.status === "ready" ? list.value : [];
-            setGames({ playerId, list: { status: "ready", value: [game, ...before] } });
-            setScreen("games");
-          }}
+      {/* Keyed by player, so switching players never shows the previous player's data. */}
+      <Routes key={playerId}>
+        <Route path="/" element={<GamesPage playerId={playerId} onUnknownPlayer={forgetPlayer} />} />
+        <Route
+          path="/games/new"
+          element={
+            <NewGameForm
+              playerId={playerId}
+              onCreated={() => navigate("/")}
+              onCancel={() => navigate("/")}
+              onUnknownPlayer={forgetPlayer}
+            />
+          }
         />
-      ) : list.status === "ready" ? (
-        <GameList games={list.value} playerId={playerId} onNewGame={() => setScreen("new-game")} />
-      ) : (
-        <p className={ui.note}>{list.status === "loading" ? "Завантажуємо ігри…" : "Не вдалося завантажити ігри."}</p>
-      )}
+        <Route path="/games/:id" element={<GameScreen playerId={playerId} onUnknownPlayer={forgetPlayer} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
