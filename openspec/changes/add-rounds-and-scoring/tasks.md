@@ -19,10 +19,10 @@ dependencies, no Docker or frontend changes.
 
 ## 2. Rules module
 
-- [ ] 2.1 `backend/app/rules.py`: `Settings`, `Played`, `Penalty`, `Outcome`, `Standing`, `settle` (design D1),
+- [x] 2.1 `backend/app/rules.py`: `Settings`, `Played`, `Penalty`, `Outcome`, `Standing`, `settle` (design D1),
   no imports from `sqlmodel`, `fastapi` or `app.*`. Verify every test in `tests/test_rules.py` passes and
   `grep -E "sqlmodel|fastapi|from app" backend/app/rules.py` prints nothing
-- [ ] 2.2 Commit (`feat(rules): settle rounds into score, streak penalties and game end`)
+- [x] 2.2 Commit (`feat(rules): settle rounds into score, streak penalties and game end`)
 
 ## 3. Storage
 
