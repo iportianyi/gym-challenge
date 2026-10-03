@@ -19,8 +19,8 @@ def frontend_dir(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def client(frontend_dir: Path) -> Iterator[TestClient]:
-    with TestClient(create_app(frontend_dir=frontend_dir)) as test_client:
+def client(open_client: Callable[[], TestClient]) -> Iterator[TestClient]:
+    with open_client() as test_client:
         yield test_client
 
 
@@ -38,9 +38,3 @@ def open_client(frontend_dir: Path, database_url: str) -> Callable[[], TestClien
         return TestClient(create_app(frontend_dir=frontend_dir, database_url=database_url))
 
     return make
-
-
-@pytest.fixture
-def api(open_client: Callable[[], TestClient]) -> Iterator[TestClient]:
-    with open_client() as test_client:
-        yield test_client

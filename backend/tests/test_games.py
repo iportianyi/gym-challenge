@@ -25,8 +25,8 @@ def body(**changes: Any) -> dict[str, Any]:
 # Requirement: Creator starts a game by the opponent's email
 
 
-def test_client_starts_a_game_against_coach(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
+def test_client_starts_a_game_against_coach(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
 
     assert response.status_code == 201
     assert response.json() == {
@@ -41,8 +41,8 @@ def test_client_starts_a_game_against_coach(api: TestClient) -> None:
     }
 
 
-def test_email_with_spaces_and_capitals(api: TestClient) -> None:
-    response = api.post(
+def test_email_with_spaces_and_capitals(client: TestClient) -> None:
+    response = client.post(
         "/api/games", headers=AS_COACH, json=body(opponent_email="  Client@GYM.local ")
     )
 
@@ -54,18 +54,18 @@ def test_email_with_spaces_and_capitals(api: TestClient) -> None:
 # Requirement: The opponent must be another existing player
 
 
-def test_unknown_email(api: TestClient) -> None:
-    response = api.post(
+def test_unknown_email(client: TestClient) -> None:
+    response = client.post(
         "/api/games", headers=AS_CLIENT, json=body(opponent_email="nobody@gym.local")
     )
 
     assert response.status_code == 422
     assert response.json() == {"detail": "Opponent not found"}
-    assert api.get("/api/games", headers=AS_CLIENT).json() == []
+    assert client.get("/api/games", headers=AS_CLIENT).json() == []
 
 
-def test_own_email(api: TestClient) -> None:
-    response = api.post(
+def test_own_email(client: TestClient) -> None:
+    response = client.post(
         "/api/games", headers=AS_CLIENT, json=body(opponent_email="client@gym.local")
     )
 
@@ -76,40 +76,40 @@ def test_own_email(api: TestClient) -> None:
 # Requirement: Game settings are validated
 
 
-def test_exercise_is_blank(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=body(exercise="   "))
+def test_exercise_is_blank(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=body(exercise="   "))
 
     assert response.status_code == 422
 
 
-def test_base_reps_is_zero(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=body(base_reps=0))
+def test_base_reps_is_zero(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=body(base_reps=0))
 
     assert response.status_code == 422
 
 
-def test_step_may_be_zero(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=body(step_reps=0))
+def test_step_may_be_zero(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=body(step_reps=0))
 
     assert response.status_code == 201
     assert response.json()["step_reps"] == 0
 
 
-def test_final_reps_above_the_limit(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=body(final_reps=1001))
+def test_final_reps_above_the_limit(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=body(final_reps=1001))
 
     assert response.status_code == 422
 
 
-def test_exercise_is_trimmed(api: TestClient) -> None:
-    response = api.post("/api/games", headers=AS_CLIENT, json=body(exercise="  Планка  "))
+def test_exercise_is_trimmed(client: TestClient) -> None:
+    response = client.post("/api/games", headers=AS_CLIENT, json=body(exercise="  Планка  "))
 
     assert response.status_code == 201
     assert response.json()["exercise"] == "Планка"
 
 
-def test_game_endpoints_require_a_player(api: TestClient) -> None:
-    response = api.post("/api/games", json=VALID_BODY)
+def test_game_endpoints_require_a_player(client: TestClient) -> None:
+    response = client.post("/api/games", json=VALID_BODY)
 
     assert response.status_code == 401
 
@@ -117,9 +117,9 @@ def test_game_endpoints_require_a_player(api: TestClient) -> None:
 # Requirement: Several active games are allowed
 
 
-def test_second_game_with_the_same_opponent(api: TestClient) -> None:
-    first = api.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
-    second = api.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
+def test_second_game_with_the_same_opponent(client: TestClient) -> None:
+    first = client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
+    second = client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY)
 
     assert first.status_code == 201
     assert second.status_code == 201
@@ -129,26 +129,26 @@ def test_second_game_with_the_same_opponent(api: TestClient) -> None:
 # Requirement: A player lists their own games, newest first
 
 
-def test_opponent_sees_the_game(api: TestClient) -> None:
+def test_opponent_sees_the_game(client: TestClient) -> None:
     for _ in range(2):
-        assert api.post("/api/games", headers=AS_CLIENT, json=VALID_BODY).status_code == 201
+        assert client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY).status_code == 201
 
-    response = api.get("/api/games", headers=AS_COACH)
+    response = client.get("/api/games", headers=AS_COACH)
 
     assert response.status_code == 200
     assert [game["id"] for game in response.json()] == [2, 1]
 
 
-def test_other_players_games_are_not_listed(api: TestClient, database_url: str) -> None:
+def test_other_players_games_are_not_listed(client: TestClient, database_url: str) -> None:
     # The app has started, so the schema exists; the third player goes in with plain sqlite3.
     with sqlite3.connect(database_url.removeprefix("sqlite:///")) as connection:
         cursor = connection.execute(
             "INSERT INTO player (name, email) VALUES (?, ?)", ("Гість", "guest@gym.local")
         )
         guest_id = cursor.lastrowid
-    assert api.post("/api/games", headers=AS_CLIENT, json=VALID_BODY).status_code == 201
+    assert client.post("/api/games", headers=AS_CLIENT, json=VALID_BODY).status_code == 201
 
-    response = api.get("/api/games", headers={"X-Player-Id": str(guest_id)})
+    response = client.get("/api/games", headers={"X-Player-Id": str(guest_id)})
 
     assert response.status_code == 200
     assert response.json() == []

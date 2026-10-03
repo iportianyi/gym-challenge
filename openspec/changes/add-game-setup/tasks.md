@@ -22,20 +22,20 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
   `docker compose --profile check build backend-check` succeeds
 - [x] 2.2 Add `dseg` with `pnpm add` in the `frontend-check` container; verify `pnpm-lock.yaml` changed and the
   image builds
-- [ ] 2.3 `app/db.py` (engine per app, SQLite `foreign_keys` pragma, `SessionDep`), `app/models.py` (`Player`,
+- [x] 2.3 `app/db.py` (engine per app, SQLite `foreign_keys` pragma, `SessionDep`), `app/models.py` (`Player`,
   `Game`), `app/migrations/` with `0001` creating both tables and the two default players; `create_app` takes
   `database_url` and runs `upgrade head` in the lifespan; `DATABASE_URL` default `sqlite:///./gym.db`, `*.db`
   git-ignored. Verify the `players` "Fresh database" and "Restart keeps two players" tests pass
 
 ## 3. Players and games API
 
-- [ ] 3.1 `app/api/players.py`: `GET /api/players`, and `current_player` / `CurrentPlayerDep` reading `X-Player-Id`
+- [x] 3.1 `app/api/players.py`: `GET /api/players`, and `current_player` / `CurrentPlayerDep` reading `X-Player-Id`
   as a string (design D3). Verify all `players` API tests pass
-- [ ] 3.2 `app/api/games.py`: `POST /api/games` (request model with trimming and limits, opponent lookup by
+- [x] 3.2 `app/api/games.py`: `POST /api/games` (request model with trimming and limits, opponent lookup by
   trimmed lower-cased email, the two `422` details) and `GET /api/games` (creator or opponent, id descending);
   routers included before the `/api` catch-all. Verify all `games` API tests and the existing `service-health`
   tests pass
-- [ ] 3.3 Commit the backend (`feat(api): players, X-Player-Id identity, create and list games on SQLite`)
+- [x] 3.3 Commit the backend (`feat(api): players, X-Player-Id identity, create and list games on SQLite`)
 
 ## 4. Docker persistence
 

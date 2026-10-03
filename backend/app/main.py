@@ -1,11 +1,13 @@
 import os
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from starlette.routing import Match
 
-from app.api import health
+from app.api import games, health, players
+from app.db import create_db_engine, database_url_from_env, run_migrations
 
 API_METHODS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
@@ -40,11 +42,23 @@ def api_fallback(api: APIRouter) -> Callable[[Request, str], None]:
     return endpoint
 
 
-def create_app(frontend_dir: Path | None = None) -> FastAPI:
-    app = FastAPI(title="gym-challenge")
+def create_app(frontend_dir: Path | None = None, *, database_url: str) -> FastAPI:
+    engine = create_db_engine(database_url)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        # One process (`fastapi run`), so migrating at startup cannot race another worker.
+        run_migrations(engine)
+        yield
+        engine.dispose()
+
+    app = FastAPI(title="gym-challenge", lifespan=lifespan)
+    app.state.engine = engine
 
     api = APIRouter(prefix="/api")
     api.include_router(health.router)
+    api.include_router(players.router)
+    api.include_router(games.router)
     # Must stay the LAST /api route: it answers 404 JSON for any unknown /api path and any method.
     # Without it, app.frontend() would serve index.html to a browser (Accept: text/html)
     # that asks for /api/<unknown>.
@@ -69,4 +83,4 @@ def frontend_dir_from_env() -> Path | None:
     return Path(value) if value else None
 
 
-app = create_app(frontend_dir_from_env())
+app = create_app(frontend_dir_from_env(), database_url=database_url_from_env())
