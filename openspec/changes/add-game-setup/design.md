@@ -161,5 +161,8 @@ What the code does beyond or differently from the decisions above, recorded duri
 - **D5, CSS.** `.field .reps` repeats the DSEG7 face and amber colour of the global `.digits` class, because
   `.field input` is more specific. Found in the Playwright check, where the numbers were white.
 - **D6.** `.dockerignore` also skips `**/*.db`, so a local database never enters the image.
-- **Task 5.3.** There is no screenshot of the empty list: the database already held games from the Docker check.
-  The empty state is covered by the Vitest scenario "No games yet".
+- **Task 5.3.** The empty-list screenshot was missing at review time (the main database already held games). It was
+  taken afterwards on a throwaway Compose project with an empty volume (`-p gym-persist-check`, port 8001, removed
+  with `down -v` after). Measured contrast and the no-horizontal-scroll check are in `docs/reviews/add-game-setup.md`.
+- **Task 5.4.** The commit is named `...in the scoreboard style (...)`, not `...in the chosen visual style`: the same
+  commit, named after the direction that was chosen.
