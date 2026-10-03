@@ -1,0 +1,22 @@
+schema: spec-driven
+
+# Shown to the agent whenever it creates an artifact (proposal, specs, design, tasks).
+# Product rules and the reasons behind the stack live in docs/spec.md — read it first, do not restate it here.
+context: |
+  Product: gym-challenge — two players (the author and his gym coach) each guess how many people are in the gym;
+  the closer guess scores a point, first to 5 wins. Product spec and game rules: docs/spec.md (source of truth for "why").
+  Stack: backend FastAPI + SQLModel + SQLite + Alembic, managed by uv, checked by ruff, ty and pytest;
+  frontend React + TypeScript + Vite, managed by pnpm, tested by Vitest. FastAPI serves the built frontend
+  (app.frontend()) and the API from one origin. Local run only, via Docker Compose; no hosting.
+  Game rules live in a pure Python module (no DB, no HTTP) with pytest tests beside it.
+  UI copy is Ukrainian; code, specs, tasks and commit messages are English.
+  OpenSpec CLI: only as `pnpm exec openspec` (pinned devDependency), never a bare `openspec`.
+  Stores: never use `openspec store` or `--store`; this repo's openspec/ is the only root (Claude config is project-scoped).
+
+rules:
+  specs:
+    - Every scenario names concrete input values and the exact expected output, so a test can assert it.
+  tasks:
+    - Scenario tests come first. The first task writes one test per spec scenario, runs them against the current code and quotes the failing lines; implementation tasks follow.
+    - The failing tests are committed on their own before the implementation that turns them green.
+    - The last task is "Run the project check command and quote its summary line".

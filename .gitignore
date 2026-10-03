@@ -9,3 +9,6 @@ CLAUDE.local.md
 
 # Playwright MCP screenshots and session output
 .playwright-mcp/
+
+# dependencies
+node_modules/

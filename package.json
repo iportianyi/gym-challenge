@@ -1,0 +1,15 @@
+{
+  "name": "gym-challenge-tooling",
+  "private": true,
+  "description": "Repo-level tooling only (OpenSpec, agent log). Frontend has its own package.json in frontend/.",
+  "scripts": {
+    "spec:check": "node scripts/spec-check.mjs",
+    "openspec:pin": "node scripts/openspec-pin.mjs",
+    "agent:log": "node scripts/agent-log-summary.mjs",
+    "hooks:selftest": "node scripts/hooks-selftest.mjs"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.14.0"
+  },
+  "packageManager": "pnpm@11.17.0"
+}
