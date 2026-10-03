@@ -1,0 +1,56 @@
+# The project's definition of done (`make check`) on a clean clone, plus what it does not cover: a server-side
+# secret scan (the pre-push gate is client-side and can be skipped) and the production image build. No deploy:
+# hosting is out of the MVP (docs/spec.md). Actions are pinned by commit SHA; the tag is in the comment.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the secret scan reads the commits of the push or the PR
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0, version from packageManager
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Secret scan of the pushed commits
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        env:
+          RANGE: ${{ github.event.before }}..${{ github.sha }}
+        run: node scripts/secret-scan.mjs --range "$RANGE"
+
+      - name: Secret scan of the pull request
+        if: github.event_name == 'pull_request'
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+        run: node scripts/secret-scan.mjs --range "$RANGE"
+
+      - name: Repo tooling (OpenSpec for the spec gate)
+        run: pnpm install --frozen-lockfile
+
+      # make check refuses to pass unless the pre-push gate is active on the clone.
+      - name: Activate the pre-push gate
+        run: pnpm githooks:install
+
+      - name: make check
+        run: make check
+
+      - name: Production image builds
+        run: docker compose build app
