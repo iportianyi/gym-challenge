@@ -29,8 +29,8 @@ See proposal.md (Why). Current state, observed in the code:
 ## Decisions
 
 ### D1. SQLModel tables, Alembic migrations run at startup
-Tables `player` (id, name, email unique) and `game` (id, creator_id → player, opponent_id → player, round_exercise,
-base_reps, step_reps, final_exercise, final_reps, status, created_at). Migration `0001` creates both and inserts the
+Tables `player` (id, name, email unique) and `game` (id, creator_id → player, opponent_id → player, exercise,
+base_reps, step_reps, final_reps, status, created_at). Migration `0001` creates both and inserts the
 two default players with `op.bulk_insert`, so seeding happens exactly once per database by construction.
 Migrations live in `app/migrations/` (inside the copied `app/` tree, so the Dockerfile needs no new `COPY`) and are
 run from code (`alembic.command.upgrade` with a programmatic `Config`, no `alembic.ini`) in the app lifespan.
@@ -56,11 +56,16 @@ validation keeps FastAPI's list-shaped `detail`. The frontend maps the two known
 a generic `Не вдалося створити гру. Перевір поля.` otherwise. Request model: Pydantic `Field` limits
 (`min_length`/`max_length` after a trimming validator, `ge`/`le` for reps).
 
-### D5. Frontend: state machine in `App`, API clients per resource
+### D5. Frontend: state machine in `App`, API clients per resource, plain CSS
 `App` keeps `screen: "pick" | "games" | "new-game"` and `playerId`. The id is stored in `localStorage` under
 `gym-challenge.player-id`; reads and writes are wrapped in `try/catch` (private mode). `src/api/players.ts` and
 `src/api/games.ts` add the header; a `401` from a game call clears the stored id and returns to the picker.
 The greeting and API status stay above the screen area, so `web-shell` scenarios are untouched.
+Styles: one global `src/styles/tokens.css` (palette custom properties, DSEG7 `@font-face`, focus ring) and a CSS
+Module per component (`*.module.css`, built into Vite, no dependency). Own components, no component library.
+- *Alternative:* Tailwind CSS — rejected by the human (2026-10-03): a few screens, the palette is already a handful
+  of custom properties, it would add a dependency and a Vite plugin (build config) a day before the deadline, and
+  utility strings in JSX are harder to review. Can come later as its own change if screens multiply.
 
 ### D6. Docker: named volume for the database
 `docker-compose.yml`: service `app` gets `DATABASE_URL=sqlite:////app/data/gym.db` and volume `gym-data:/app/data`.

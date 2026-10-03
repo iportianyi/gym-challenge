@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Defines who can play gym-challenge in the MVP — two default players without passwords — and how the phone and every
+Defines who can play gym-challenge in the MVP — two default players without passwords — and how the browser and every
 API request say which of them is acting, so the app can tell the players' actions apart.
 
 ## ADDED Requirements
@@ -23,7 +23,7 @@ SHALL NOT create more players.
 - **THEN** the body parsed as JSON is a list of exactly `2` players with ids `1` and `2`
 
 ### Requirement: Listing players needs no player identity
-The system SHALL answer `GET /api/players` without an `X-Player-Id` header, because the phone needs the list before
+The system SHALL answer `GET /api/players` without an `X-Player-Id` header, because the browser needs the list before
 it knows who is using it.
 
 #### Scenario: No identity header
@@ -54,8 +54,8 @@ with `401` and the JSON body `{"detail": "Unknown player"}`. The header is not a
 - **WHEN** a client sends `GET /api/games` with header `X-Player-Id: 2`
 - **THEN** the response status is `200`
 
-### Requirement: The phone asks who is using it
-When no player is remembered on the device, the web app SHALL show the heading `Хто ти?` and one button per player
+### Requirement: The browser asks who is using it
+When no player is remembered in the browser, the web app SHALL show the heading `Хто ти?` and one button per player
 from `GET /api/players`, labelled `Я — <name>`, with the player's email next to it. It SHALL NOT show games yet.
 
 #### Scenario: First open
@@ -65,8 +65,9 @@ from `GET /api/players`, labelled `Я — <name>`, with the player's email next 
 - **AND** the page shows the texts `client@gym.local` and `coach@gym.local`
 - **AND** the page does not show the heading `Мої ігри`
 
-### Requirement: The phone remembers the chosen player
-Choosing a player SHALL store the choice on the device so that the next load skips the picker, and SHALL show
+### Requirement: The browser remembers the chosen player
+Choosing a player SHALL store the choice in the browser's local storage for this site, so that the next load in
+the same browser skips the picker, and SHALL show
 `Ти граєш як <name>` with a button `Змінити гравця`. The app SHALL send the chosen id as `X-Player-Id` with every
 game request.
 
@@ -77,7 +78,7 @@ game request.
 - **AND** the request to `GET /api/games` carries the header `X-Player-Id: 2`
 
 #### Scenario: Reload keeps the choice
-- **WHEN** the person has picked `Я — Тренер` and the app is loaded again on the same device
+- **WHEN** the person has picked `Я — Тренер` and the app is loaded again in the same browser
 - **THEN** the page shows the text `Ти граєш як Тренер` without showing the heading `Хто ти?`
 
 #### Scenario: Change player

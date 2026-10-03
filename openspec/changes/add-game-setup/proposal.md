@@ -14,11 +14,11 @@ screens, so the visual direction of the app is chosen here, once, instead of res
   database file lives in a named volume, so games survive `docker compose down` / `up`.
 - Two default players, «Клієнт» and «Тренер», each with an email, created by a migration.
 - `GET /api/players` — the list of players, for the "who am I" screen.
-- Player identity without a password: the phone picks a player, remembers the choice, and sends it with every
+- Player identity without a password: the browser asks which player is using it, remembers the choice in its local storage, and sends it with every
   API request in the `X-Player-Id` header. Game endpoints answer `401` without a valid one.
   This is easy to fake on purpose (spec v1.3 accepts it for two people and a local run).
 - `POST /api/games` — the caller becomes the creator; the body names the opponent by email and the game settings
-  (round exercise, base reps, step, final exercise, final reps). Unknown email or the caller's own email → `422`.
+  (one penalty exercise, base reps, step for losses in a row, reps for losing the game). Unknown email or the caller's own email → `422`.
   Several active games are allowed, also with the same opponent.
 - `GET /api/games` — the caller's games (as creator or opponent), newest first.
 - Frontend screens: "who am I" picker, "my games" list, "new game" form, "change player". The existing greeting and

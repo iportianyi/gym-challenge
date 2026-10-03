@@ -14,10 +14,10 @@ answer `201` with the game. The opponent does not need to accept the game.
 
 #### Scenario: Клієнт starts a game against Тренер
 - **WHEN** a client sends `POST /api/games` with header `X-Player-Id: 1` and body
-  `{"opponent_email": "coach@gym.local", "round_exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_exercise": "Віджимання", "final_reps": 30}`
+  `{"opponent_email": "coach@gym.local", "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30}`
 - **THEN** the response status is `201`
 - **AND** the body parsed as JSON equals
-  `{"id": 1, "creator": {"id": 1, "name": "Клієнт"}, "opponent": {"id": 2, "name": "Тренер"}, "round_exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_exercise": "Віджимання", "final_reps": 30, "status": "active"}`
+  `{"id": 1, "creator": {"id": 1, "name": "Клієнт"}, "opponent": {"id": 2, "name": "Тренер"}, "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30, "status": "active"}`
 
 #### Scenario: Email with spaces and capitals
 - **WHEN** a client sends `POST /api/games` with header `X-Player-Id: 2` and a valid body whose `opponent_email` is
@@ -45,13 +45,14 @@ created in either case.
 - **AND** the body parsed as JSON equals `{"detail": "Cannot play against yourself"}`
 
 ### Requirement: Game settings are validated
-Exercise names SHALL be 1–60 characters after trimming surrounding spaces and SHALL be stored trimmed. `base_reps`
+A game has one penalty exercise, used for both round and final penalties. Its name SHALL be 1–60 characters after
+trimming surrounding spaces and SHALL be stored trimmed. `base_reps`
 and `final_reps` SHALL be whole numbers from 1 to 1000; `step_reps` a whole number from 0 to 1000. A body that breaks
 any of these rules SHALL be answered with `422` and no game is created.
 
 #### Scenario: Exercise is blank
 - **WHEN** a client sends `POST /api/games` with header `X-Player-Id: 1` and the valid body from the first scenario
-  but `"round_exercise": "   "`
+  but `"exercise": "   "`
 - **THEN** the response status is `422`
 
 #### Scenario: Base reps is zero
@@ -68,9 +69,9 @@ any of these rules SHALL be answered with `422` and no game is created.
 - **THEN** the response status is `422`
 
 #### Scenario: Exercise is trimmed
-- **WHEN** the same request is sent with `"final_exercise": "  Планка  "`
+- **WHEN** the same request is sent with `"exercise": "  Планка  "`
 - **THEN** the response status is `201`
-- **AND** the body's `final_exercise` equals `"Планка"`
+- **AND** the body's `exercise` equals `"Планка"`
 
 #### Scenario: Game endpoints require a player
 - **WHEN** a client sends `POST /api/games` with the valid body from the first scenario and no `X-Player-Id` header
@@ -108,11 +109,11 @@ again on the same file.
 #### Scenario: Restart
 - **WHEN** player `1` creates a game against `coach@gym.local`, the system is stopped and started again on the same
   database file, and a client sends `GET /api/games` with header `X-Player-Id: 1`
-- **THEN** the body is a list with exactly one game whose `round_exercise` equals `"Присідання"`
+- **THEN** the body is a list with exactly one game whose `exercise` equals `"Присідання"`
 
 ### Requirement: The app lists my games
 After a player is chosen, the web app SHALL show the heading `Мої ігри` and the caller's games from `GET /api/games`.
-Each game SHALL show the other player's name and the round exercise. With no games it SHALL show
+Each game SHALL show the other player's name and the penalty exercise. With no games it SHALL show
 `Ще немає ігор. Почни першу.` A button `Нова гра` SHALL open the new-game form.
 
 #### Scenario: No games yet
@@ -127,16 +128,16 @@ Each game SHALL show the other player's name and the round exercise. With no gam
 - **AND** the page does not show `Ще немає ігор. Почни першу.`
 
 ### Requirement: The app creates a game from a form
-The form SHALL have the heading `Нова гра`, the fields `Email суперника`, `Вправа за раунд`,
-`Повторень за першу поразку`, `Додати за кожну наступну поразку`, `Фінальна вправа`, `Повторень у фіналі`, and the
+The form SHALL have the heading `Нова гра`, the fields `Email суперника`, `Вправа`, `Повторень за першу поразку`,
+`Додати за кожну наступну поразку поспіль`, `Повторень за програну гру`, and the
 buttons `Почати гру` and `Скасувати`. On success the app SHALL show `Мої ігри` with the new game; on a `422` from the
 server it SHALL stay on the form and show the error in Ukrainian.
 
 #### Scenario: Successful create
-- **WHEN** player `Клієнт` fills the form with `coach@gym.local`, `Присідання`, `10`, `5`, `Віджимання`, `30` and taps
+- **WHEN** player `Клієнт` fills the form with `coach@gym.local`, `Присідання`, `10`, `5`, `30` and taps
   `Почати гру`
 - **THEN** the app sends `POST /api/games` with header `X-Player-Id: 1` and body
-  `{"opponent_email": "coach@gym.local", "round_exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_exercise": "Віджимання", "final_reps": 30}`
+  `{"opponent_email": "coach@gym.local", "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30}`
 - **AND** after a `201` answer the page shows the heading `Мої ігри` and the text `Тренер` in the list of games
 
 #### Scenario: Unknown opponent email
