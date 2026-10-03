@@ -1,0 +1,25 @@
+# Local run: `docker compose up --build`. Checks: `make check` (services in profile "check").
+services:
+  backend-check:
+    profiles: [check]
+    build:
+      context: .
+      target: backend-deps
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app/backend
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./backend:/app/backend
+
+  frontend-check:
+    profiles: [check]
+    build:
+      context: .
+      target: frontend-deps
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /app/frontend
+    environment:
+      HOME: /tmp
+    volumes:
+      - ./frontend:/app/frontend

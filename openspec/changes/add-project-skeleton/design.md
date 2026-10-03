@@ -93,3 +93,25 @@ It ends with one summary line `check: OK (backend, frontend, spec)` on success. 
   `/tmp`; verified by `git status` showing no new untracked files after `make check`.
 - [Generating `uv.lock` / `pnpm-lock.yaml` needs the tools] → generated inside throwaway containers
   (`docker run … uv lock`, `docker run … pnpm install`) and committed; host stays clean.
+
+## Implementation notes (reality vs plan)
+
+Recorded during apply; each item changed how the plan was carried out, not what the specs require.
+
+- **TypeScript 6.0.3, not 7.x** — `typescript-eslint` 8.71 supports `typescript <6.1`.
+- **ESLint 10.11.0, not 10.12.0** — pnpm 11 refuses packages younger than its `minimumReleaseAge`; 10.12.0 was a day
+  old and pnpm wrote an exclusion into a new `pnpm-workspace.yaml`. The exclusion was dropped in favour of the
+  previous release instead of bypassing the supply-chain guard.
+- **No `@testing-library/jest-dom`** — `getByText`/`queryByText` assertions cover the scenarios.
+- **Backend base image `ghcr.io/astral-sh/uv:0.12.22-python3.13-trixie-slim`** (uv + Python in one official image;
+  no bookworm variant for this uv version) instead of `python:3.13-slim` + copied uv binary. The bare uv image has no
+  Python, so it cannot run `uv lock`.
+- **Frontend dependencies in `/app/node_modules`** (one level above the bind-mounted `/app/frontend`) instead of an
+  anonymous volume over `frontend/node_modules`: module resolution walks up, and no 160 MB copy per run.
+- **`make check` calls ESLint, `tsc` and Vitest directly**, not `pnpm run …`: pnpm 11 verifies the install before a
+  script, finds no `./node_modules` in the bind mount and installs into the working tree.
+- **`index.html` content (lang, viewport, `#root`) is tested in the frontend** (`src/indexHtml.test.ts`); the backend
+  check container mounts only `backend/`, so backend tests assert that the server delivers the frontend's
+  `index.html` and the fallback rules. End-to-end `curl` in 5.1 covers both together.
+- **Environment:** containers resolve DNS only with the human's VPN up — `/etc/docker/daemon.json` lists three
+  VPN-only nameservers first, and glibc uses only the first three. Not changed in the repo.

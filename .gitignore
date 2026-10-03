@@ -12,3 +12,6 @@ CLAUDE.local.md
 
 # dependencies
 node_modules/
+
+# Python bytecode
+__pycache__/

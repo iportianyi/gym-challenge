@@ -1,0 +1,43 @@
+[project]
+name = "gym-challenge-backend"
+version = "0.1.0"
+description = "gym-challenge API and frontend server"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi[standard]>=0.142.2,<0.143",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.10",
+    "ty>=0.0.84",
+    "httpx>=0.28.1",
+]
+
+[tool.uv]
+# An application, not a library: install dependencies only, import `app` from the project root.
+package = false
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+# Keep caches out of the bind-mounted working tree (see design.md, Docker).
+cache-dir = "/tmp/ruff-cache"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "FAST"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["-p", "no:cacheprovider"]
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.ty.src]
+include = ["app", "tests"]

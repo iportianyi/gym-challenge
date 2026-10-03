@@ -1,0 +1,12 @@
+.git
+.agent-log
+.claude
+.playwright-mcp
+docs
+openspec
+scripts
+node_modules
+**/node_modules
+frontend/dist
+**/__pycache__
+**/.venv
