@@ -15,7 +15,8 @@
       "Bash(pnpm spec:check)",
       "Bash(pnpm openspec:pin)",
       "Bash(pnpm agent:log *)",
-      "Bash(pnpm hooks:selftest)"
+      "Bash(pnpm hooks:selftest)",
+      "Bash(make check)"
     ],
     "ask": [
       "Bash(git push *)",

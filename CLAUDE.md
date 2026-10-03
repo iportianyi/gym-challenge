@@ -3,7 +3,16 @@
 Гра «вгадай, скільки людей у спортзалі» для двох гравців (автор і тренер). Що будуємо і чому — `docs/spec.md`.
 Стек (деталі й причини — розділ «Стек» у spec): FastAPI + SQLModel + SQLite (uv, ruff, ty, pytest) ·
 React + TypeScript + Vite (pnpm, Vitest) · локальний запуск через Docker Compose · FastAPI роздає зібраний фронтенд.
-Коду ще немає. Перша зміна — скелетон проєкту через OpenSpec (див. нижче); продуктовий код — лише в межах прийнятої зміни.
+Продуктовий код — лише в межах прийнятої OpenSpec-зміни (див. нижче).
+
+## Команди
+
+- `docker compose up --build` — застосунок на http://localhost:8000 (API під `/api`, фронтенд на `/`).
+- `make check` — **definition of done**: ruff, ty, pytest, ESLint, tsc, Vitest у Docker + `pnpm spec:check` на хості;
+  успіх закінчується рядком `check: OK (backend, frontend, spec)`. Перед «готово» — запустити й процитувати.
+- Інструменти бекенду/фронтенду на хості не встановлені: лише через `make check` або
+  `docker compose --profile check run --rm backend-check|frontend-check <команда>`.
+- Docker у контейнерах розв'язує DNS лише з увімкненим VPN людини (`/etc/docker/daemon.json`); збій DNS — питати людину.
 
 ## Порядок роботи (це докази для capstone — не порушувати)
 
