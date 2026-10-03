@@ -63,4 +63,4 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 - [x] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   docs/reviews/add-game-screen.md
-- [ ] 7.2 Run the project check command and quote its summary line
+- [x] 7.2 Run the project check command and quote its summary line
