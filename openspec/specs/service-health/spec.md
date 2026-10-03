@@ -1,0 +1,33 @@
+# service-health Specification
+
+## Purpose
+
+Lets a person or a tool confirm that the gym-challenge backend is running, and keeps the `/api/` namespace strictly
+for the API so API clients never receive the web page by mistake.
+
+## Requirements
+
+### Requirement: Health endpoint reports that the service is up
+The system SHALL answer `GET /api/health` with HTTP 200 and the JSON body `{"status": "ok"}` whenever the backend
+process is running. The endpoint SHALL NOT require authentication.
+
+#### Scenario: Health check succeeds
+- **WHEN** a client sends `GET /api/health`
+- **THEN** the response status is `200`
+- **AND** the `Content-Type` header starts with `application/json`
+- **AND** the body parsed as JSON equals `{"status": "ok"}`
+
+### Requirement: Unknown API paths return 404
+The system SHALL answer any request to a path under `/api/` that has no API route with HTTP 404 and a JSON body,
+regardless of the request's `Accept` header. It SHALL NOT answer such a request with the frontend's HTML page.
+
+#### Scenario: API client requests an unknown API path
+- **WHEN** a client sends `GET /api/does-not-exist` with header `Accept: application/json`
+- **THEN** the response status is `404`
+- **AND** the `Content-Type` header starts with `application/json`
+
+#### Scenario: Browser navigates to an unknown API path
+- **WHEN** a client sends `GET /api/does-not-exist` with header `Accept: text/html`
+- **THEN** the response status is `404`
+- **AND** the `Content-Type` header starts with `application/json`
+- **AND** the body does not contain `<div id="root">`

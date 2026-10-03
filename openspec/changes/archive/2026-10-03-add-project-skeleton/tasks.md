@@ -26,7 +26,7 @@
 
 ## 5. Runtime image and local run
 
-- [ ] 5.1 Add `Dockerfile` stages `frontend-build` and `runtime` (`fastapi run` on port 8000, built `dist` at `/app/frontend-dist`) and Compose service `app` on `8000:8000`; run `docker compose up --build -d` and verify with `curl`: `/api/health` → 200 `{"status":"ok"}`, `/` and `/games/42` with `Accept: text/html` → identical HTML, `/api/does-not-exist` with `Accept: text/html` → 404 JSON
+- [x] 5.1 Add `Dockerfile` stages `frontend-build` and `runtime` (`fastapi run` on port 8000, built `dist` at `/app/frontend-dist`) and Compose service `app` on `8000:8000`; run `docker compose up --build -d` and verify with `curl`: `/api/health` → 200 `{"status":"ok"}`, `/` and `/games/42` with `Accept: text/html` → identical HTML, `/api/does-not-exist` with `Accept: text/html` → 404 JSON
 - [x] 5.2 Open `http://localhost:8000` with Playwright MCP at 375×812 and verify the page shows the heading `Welcome to Gym Challenge` and `Сервер працює`; save the screenshot to `.playwright-mcp/` and attach its description to the autonomy log
 - [x] 5.3 Document `docker compose up --build` and `make check` in `CLAUDE.md` (Команди) and verify both commands run as written
 
