@@ -1,11 +1,14 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 
 import { createGame, UnknownPlayerError, type Game } from "../api/games";
+import type { Player } from "../api/players";
 import styles from "./NewGameForm.module.css";
 import ui from "./ui.module.css";
 
 type Props = {
   playerId: number;
+  /** Everyone the player can invite; their emails are shown as a hint under the email field. */
+  opponents: Player[];
   onCreated: (game: Game) => void;
   onCancel: () => void;
   onUnknownPlayer: () => void;
@@ -19,7 +22,7 @@ const GENERIC_ERROR = "Не вдалося створити гру. Переві
 const NETWORK_ERROR = "Сервер недоступний. Спробуй ще раз.";
 
 /** A 422 stays on the form with a Ukrainian message; a 401 hands back to the picker via `onUnknownPlayer`. */
-export default function NewGameForm({ playerId, onCreated, onCancel, onUnknownPlayer }: Props) {
+export default function NewGameForm({ playerId, opponents, onCreated, onCancel, onUnknownPlayer }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
@@ -58,7 +61,23 @@ export default function NewGameForm({ playerId, onCreated, onCancel, onUnknownPl
       </h2>
       <form className={styles.form} onSubmit={submit}>
         <Field id="opponent_email" label="Email суперника">
-          <input id="opponent_email" name="opponent_email" type="email" required autoComplete="off" />
+          <input
+            id="opponent_email"
+            name="opponent_email"
+            type="email"
+            required
+            autoComplete="off"
+            aria-describedby={opponents.length > 0 ? "opponent_hint" : undefined}
+          />
+          {opponents.length > 0 && (
+            <ul id="opponent_hint" className={styles.hint}>
+              {opponents.map((player) => (
+                <li key={player.id}>
+                  {player.name}: {player.email}
+                </li>
+              ))}
+            </ul>
+          )}
         </Field>
         {error && (
           <p className={ui.error} role="alert">

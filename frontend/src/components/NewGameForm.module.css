@@ -25,6 +25,14 @@
   color: var(--white);
 }
 
+.hint {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .field input:user-invalid {
   border-color: var(--red);
 }

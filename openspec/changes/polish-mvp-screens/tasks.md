@@ -18,12 +18,12 @@ backend, API, Docker or dependency changes.
 
 ## 2. Implementation
 
-- [ ] 2.1 `App.tsx`: heading `Gym Challenge`, no health request and no status; drop `.status*` from
+- [x] 2.1 `App.tsx`: heading `Gym Challenge`, no health request and no status; drop `.status*` from
   `App.module.css`; delete `api/health.ts` (design D3). Verify the `App.test.tsx` tests pass
-- [ ] 2.2 `PlayerSession.tsx`: `onCreated` navigates to `/games/{id}` with `replace` (design D2) and passes the other
+- [x] 2.2 `PlayerSession.tsx`: `onCreated` navigates to `/games/{id}` with `replace` (design D2) and passes the other
   players to `NewGameForm`; `NewGameForm.tsx` renders the hint list with `aria-describedby` (design D1). Verify every
   test in `Games.test.tsx` and `GameScreen.test.tsx` passes
-- [ ] 2.3 Commit (`feat(web): open the new game after create, opponent email hint, plain Gym Challenge heading`)
+- [x] 2.3 Commit (`feat(web): open the new game after create, opponent email hint, plain Gym Challenge heading`)
 - [ ] 2.4 Browser check with Playwright on `docker compose up --build` at a phone width (restore the human's `app`
   container state afterwards): create a game as `Клієнт`, see the hint and land on the game screen; screenshot in
   `.playwright-mcp/`

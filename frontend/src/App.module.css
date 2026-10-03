@@ -1,4 +1,4 @@
-/* One phone-width column; the greeting and server status sit above every screen (web-shell spec). */
+/* One phone-width column; the greeting sits above every screen (web-shell spec). */
 .page {
   box-sizing: border-box;
   display: grid;
@@ -23,26 +23,3 @@
   font-weight: 600;
 }
 
-.status {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.status::before {
-  content: "";
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: 0.4rem;
-  border-radius: 50%;
-  background: var(--steel);
-}
-
-.status[data-server="up"]::before {
-  background: var(--ok);
-}
-
-.status[data-server="down"]::before {
-  background: var(--red);
-}

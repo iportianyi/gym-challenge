@@ -51,6 +51,8 @@ export default function PlayerSession() {
   }
 
   const me = players.status === "ready" ? players.value.find((player) => player.id === playerId) : undefined;
+  // The new-game form names their emails; none while the players are loading or failed (polish-mvp-screens, D1).
+  const others = players.status === "ready" ? players.value.filter((player) => player.id !== playerId) : [];
 
   return (
     <div className={styles.session}>
@@ -68,7 +70,9 @@ export default function PlayerSession() {
           element={
             <NewGameForm
               playerId={playerId}
-              onCreated={() => navigate("/")}
+              opponents={others}
+              // Replace the form in history: Back goes to the list, not to a form for a game that exists (D2).
+              onCreated={(game) => navigate(`/games/${game.id}`, { replace: true })}
               onCancel={() => navigate("/")}
               onUnknownPlayer={forgetPlayer}
             />
