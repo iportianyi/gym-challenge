@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Delivers the gym-challenge web app to a phone or desktop browser from the same origin as the API, and gives the
-start page an honest signal of whether the backend can be reached.
+Delivers the gym-challenge web app to a phone or desktop browser from the same origin as the API, under one plain
+`Gym Challenge` heading.
 
 ## Requirements
 
