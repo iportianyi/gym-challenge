@@ -6,3 +6,6 @@
 
 # local-only Claude files
 CLAUDE.local.md
+
+# Playwright MCP screenshots and session output
+.playwright-mcp/
