@@ -6,6 +6,11 @@ services:
       target: runtime
     ports:
       - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////app/data/gym.db
+    volumes:
+      # Games survive `docker compose down`; `down -v` deletes them.
+      - gym-data:/app/data
 
   backend-check:
     profiles: [check]
@@ -30,3 +35,6 @@ services:
       HOME: /tmp
     volumes:
       - ./frontend:/app/frontend
+
+volumes:
+  gym-data:

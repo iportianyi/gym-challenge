@@ -39,10 +39,10 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 4. Docker persistence
 
-- [ ] 4.1 `docker-compose.yml`: `DATABASE_URL` and named volume `gym-data:/app/data` for `app`; `Dockerfile`
+- [x] 4.1 `docker-compose.yml`: `DATABASE_URL` and named volume `gym-data:/app/data` for `app`; `Dockerfile`
   runtime: `/app/data` owned by `app`. Verify: `docker compose up --build -d`, create a game with `curl`,
   `docker compose down` (without `-v`), `up -d` again, `GET /api/games` still lists it
-- [ ] 4.2 Commit separately (`chore(docker): SQLite volume for the app service`)
+- [x] 4.2 Commit separately (`chore(docker): SQLite volume for the app service`)
 
 ## 5. Frontend screens and visual system
 

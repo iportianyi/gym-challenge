@@ -41,7 +41,9 @@ RUN uv sync --frozen --no-install-project --no-dev
 COPY backend/app ./app
 COPY --from=frontend-build /app/frontend/dist /app/frontend-dist
 ENV FRONTEND_DIST=/app/frontend-dist
-RUN useradd --system --no-create-home app
+RUN useradd --system --no-create-home app \
+    && mkdir -p /app/data && chown app /app/data
+# Compose mounts the gym-data volume here; a fresh named volume copies this directory's owner (app).
 USER app
 EXPOSE 8000
 CMD ["fastapi", "run", "--port", "8000"]
