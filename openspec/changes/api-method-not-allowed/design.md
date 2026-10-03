@@ -41,3 +41,16 @@ So narrowing the catch-all's methods breaks "Unknown API paths return 404".
 
 - [Walking routes on every unknown `/api` request] → only on the error path, a handful of routes; negligible.
 - [Future routers mounted outside the `/api` router] → the walk covers all app routes, not only the `/api` router.
+
+## Implementation notes (reality vs plan)
+
+- **Partial-match walk did not work as designed.** Since FastAPI 0.142, `include_router()` does not copy routes
+  into the parent: `app.router.routes` and our `api.routes` each hold one opaque `_IncludedRouter` (private class)
+  that reports `PARTIAL` for `POST /api/health` but exposes no `methods`. The first implementation therefore
+  collected an empty set and still answered 404 (tests stayed red). Found with throwaway probes, not by guessing.
+- **What is implemented instead:** for each method in `API_METHODS`, ask every route of our own `api` router
+  (except the catch-all itself) whether it would match the request **fully** via Starlette's public
+  `BaseRoute.matches()`. Methods with a full match form `Allow`. This works through included routers and path
+  params without touching private FastAPI classes. Probe: `/api/health → ['GET']`, `/api/does-not-exist → []`.
+- **`Allow` order** follows `API_METHODS` (`GET, HEAD, POST, …`), not alphabetical as planned — the scenarios only
+  pin `Allow: GET`.
