@@ -211,3 +211,8 @@ Frontend only. Rollback: revert the commits of this change; the API and data are
   `Переможець — Клієнт`, `Твоє покарання: Присідання × 30`; the list showed `Завершена`; no horizontal overflow.
   Screenshots: `.playwright-mcp/add-game-screen/` (not committed). The run created game 5 on the human's
   `gym-data` volume. The `app` container was running before and is running after, on the new image.
+- **Accepted after review (human, `docs/autonomy-log.md` row 68).** `/games/abc` shows «Не вдалося завантажити
+  гру» — kept as intended. A poll started by `visibilitychange` while a move is in flight can answer after the move
+  and show the older state for up to one poll (≤ 3 s; the next poll or a `409` re-read restores it) — known
+  limitation; the one-line fix (call `stop()` again when the move answers) was offered and declined. A `422`/`500`
+  on a move reads as «Немає зв'язку, пробуємо ще» — left for the MVP.
