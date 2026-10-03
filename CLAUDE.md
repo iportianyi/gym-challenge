@@ -1,7 +1,9 @@
 # gym-challenge — правила для агента
 
 Гра «вгадай, скільки людей у спортзалі» для двох гравців (автор і тренер). Що будуємо і чому — `docs/spec.md`.
-Стек ще не обрано: не пиши продуктовий код і не додавай залежностей, доки в spec немає рішення.
+Стек (деталі й причини — розділ «Стек» у spec): FastAPI + SQLModel + SQLite (uv, ruff, ty, pytest) ·
+React + TypeScript + Vite (pnpm, Vitest) · локальний запуск через Docker Compose · FastAPI роздає зібраний фронтенд.
+Коду ще немає: наступний крок — `docs/plan.md`; продуктовий код і залежності — лише після нього.
 
 ## Порядок роботи (це докази для capstone — не порушувати)
 
@@ -20,6 +22,11 @@
 - `node scripts/hooks-selftest.mjs` — перевірка hooks без агента.
 - Не редагувати `.agent-log/`, `.claude/hooks/`, `.claude/settings.json` без явного прохання людини — це шар спостереження.
 - Не вставляти секрети в команди: команди потрапляють у закомічений журнал.
+- MCP: **Context7** — актуальна документація бібліотек (правило `.claude/rules/context7.md`);
+  **Playwright** — браузер для перевірки UI на `localhost` (скріни в `.playwright-mcp/`, gitignored).
+- Skills у `.claude/skills/`: `fastapi` (офіційний), `frontend-design`, `web-design-reviewer`, `context7-mcp`.
+  Сторонні скіли — дослівні копії з `SOURCE.md`; не редагувати, оновлювати лише новою копією з джерела.
+- Усі налаштування Claude — лише на рівні проєкту: `.claude/rules/project-scope.md`.
 
 ## Межі
 
