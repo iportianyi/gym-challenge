@@ -34,35 +34,20 @@ still return 404.
 - **THEN** the response status is `404`
 
 ### Requirement: Start page greets the player
-The start page SHALL show the heading `Welcome to Gym Challenge` as its main (level 1) heading. This text is in
-English by the product owner's choice, as an exception to the Ukrainian UI copy rule.
+The start page SHALL show the heading `Gym Challenge` as its main (level 1) heading. This text is in English by the
+product owner's choice, as an exception to the Ukrainian UI copy rule. The page SHALL NOT request `GET /api/health`
+and SHALL NOT show a server status.
 
 #### Scenario: Greeting is shown
 - **WHEN** the start page has loaded
 - **THEN** the page has exactly one level 1 heading
-- **AND** its text is `Welcome to Gym Challenge`
+- **AND** its text is `Gym Challenge`
 
 #### Scenario: Greeting does not depend on the API
-- **WHEN** the request to `GET /api/health` fails with a network error
-- **THEN** the page still shows the level 1 heading `Welcome to Gym Challenge`
+- **WHEN** the request to `GET /api/players` fails with a network error
+- **THEN** the page still shows the level 1 heading `Gym Challenge`
 
-### Requirement: Start page shows whether the API is reachable
-The start page SHALL request `GET /api/health` when it loads and SHALL show exactly one of three Ukrainian status
-texts: while waiting, on success, or on failure.
-
-#### Scenario: Waiting for the API
-- **WHEN** the start page has loaded and `GET /api/health` has not answered yet
-- **THEN** the page shows the text `Перевіряємо сервер…`
-
-#### Scenario: API is up
-- **WHEN** `GET /api/health` answers `200` with body `{"status": "ok"}`
-- **THEN** the page shows the text `Сервер працює`
-- **AND** the page does not show `Перевіряємо сервер…`
-
-#### Scenario: API answers with an error
-- **WHEN** `GET /api/health` answers `503`
-- **THEN** the page shows the text `Сервер недоступний`
-
-#### Scenario: API cannot be reached
-- **WHEN** the request to `GET /api/health` fails with a network error
-- **THEN** the page shows the text `Сервер недоступний`
+#### Scenario: No server status
+- **WHEN** the start page has loaded and `GET /api/players` has answered `200`
+- **THEN** no request to `GET /api/health` has been sent
+- **AND** the page shows none of the texts `Перевіряємо сервер…`, `Сервер працює`, `Сервер недоступний`
