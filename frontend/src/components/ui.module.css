@@ -1,0 +1,61 @@
+/* Shared building blocks of the «Табло» screens: section heading, buttons, notes. */
+.heading {
+  margin: 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--amber);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.primary,
+.secondary {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 1rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.primary {
+  border: 0;
+  background: var(--amber);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.secondary {
+  border: 1px solid var(--steel);
+  background: transparent;
+  color: var(--white);
+}
+
+.link {
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--amber);
+  cursor: pointer;
+}
+
+.note {
+  margin: 0;
+  color: var(--muted);
+}
+
+.error {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid var(--red);
+  background: rgb(229 72 77 / 15%);
+  color: var(--error-text);
+}

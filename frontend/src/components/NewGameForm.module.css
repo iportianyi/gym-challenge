@@ -1,0 +1,44 @@
+.section,
+.form {
+  display: grid;
+  gap: var(--gap);
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 0.75rem;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--white);
+}
+
+.field input:user-invalid {
+  border-color: var(--red);
+}
+
+/* Reps are scoreboard numbers too: the global .digits class sets face and glow, but `.field input` above is more
+   specific and would turn them white, so face and colour are repeated at the same specificity, after it. */
+.field .reps {
+  font-family: var(--font-digits);
+  font-size: 1.3rem;
+  color: var(--amber);
+}
+
+.actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}

@@ -1,0 +1,17 @@
+.session {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+.me {
+  margin: 0;
+  font-weight: 600;
+}

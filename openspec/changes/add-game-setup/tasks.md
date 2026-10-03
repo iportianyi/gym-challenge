@@ -46,16 +46,16 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 5. Frontend screens and visual system
 
-- [ ] 5.1 `src/api/players.ts`, `src/api/games.ts` (hand-written types, `X-Player-Id`, `401` → clear the stored
+- [x] 5.1 `src/api/players.ts`, `src/api/games.ts` (hand-written types, `X-Player-Id`, `401` → clear the stored
   player), `src/playerStore.ts` (`localStorage` key `gym-challenge.player-id`, `try/catch`). Verify the "remember",
   "change" and "401" tests pass
-- [ ] 5.2 Screens `PlayerPicker`, `GameList`, `NewGameForm`, composed in `App.tsx` under the existing greeting and
+- [x] 5.2 Screens `PlayerPicker`, `GameList`, `NewGameForm`, composed in `App.tsx` under the existing greeting and
   status (design D5). Verify all `players` and `games` UI tests and the `web-shell` tests pass
-- [ ] 5.3 Visual system «Табло»: CSS custom properties for the palette, DSEG7 for numbers only, system sans for text,
+- [x] 5.3 Visual system «Табло»: CSS custom properties for the palette, DSEG7 for numbers only, system sans for text,
   focus ring, ≥ 48 px tap targets, `prefers-reduced-motion`, contrast ≥ 4.5:1 on navy. Verify with Playwright MCP at
   390×844 on `docker compose up --build`: screenshots of picker, empty list, form with an error, list with a game
   (in `.playwright-mcp/`), no horizontal scroll, text readable
-- [ ] 5.4 Commit the frontend (`feat(web): player picker, my games and new game form in the chosen visual style`)
+- [x] 5.4 Commit the frontend (`feat(web): player picker, my games and new game form in the chosen visual style`)
 
 ## 6. Journal
 

@@ -1,0 +1,48 @@
+/* One phone-width column; the greeting and server status sit above every screen (web-shell spec). */
+.page {
+  box-sizing: border-box;
+  display: grid;
+  gap: 1.5rem;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding-inline: 1rem;
+  padding-block: 1rem 2.5rem;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.status::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: var(--steel);
+}
+
+.status[data-server="up"]::before {
+  background: var(--ok);
+}
+
+.status[data-server="down"]::before {
+  background: var(--red);
+}

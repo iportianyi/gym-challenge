@@ -1,0 +1,66 @@
+/* Visual direction «Табло» (add-game-setup design, D7): the gym's LED scoreboard.
+   Navy ground, amber seven-segment digits for every number, system sans for all words, red only for errors.
+   Contrast on --navy: --white 15:1, --muted 8:1, --amber 10:1, --error-text 9:1. --steel is for lines only. */
+@font-face {
+  font-family: "DSEG7";
+  src: url("dseg/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --navy: #0e1a2b;
+  --panel: #13243a;
+  --panel-edge: #2a3e58;
+  --amber: #ffb23f;
+  --amber-glow: rgb(255 178 63 / 45%);
+  --white: #f1f4f8;
+  --muted: #9fb0c6;
+  --steel: #5b6b80;
+  --red: #e5484d;
+  --error-text: #ffb4b6;
+  --ok: #4ade80;
+
+  --font-text: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-digits: "DSEG7", ui-monospace, monospace;
+
+  --tap: 3rem;
+  --radius: 0.4rem;
+  --gap: 1rem;
+
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--navy);
+  color: var(--white);
+  font: 400 1rem/1.5 var(--font-text);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Every number on the scoreboard. DSEG7 has digits and a few signs only — never use it for words. */
+.digits {
+  font-family: var(--font-digits);
+  font-variant-numeric: tabular-nums;
+  color: var(--amber);
+  text-shadow: 0 0 0.6rem var(--amber-glow);
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

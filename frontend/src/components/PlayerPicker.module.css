@@ -1,0 +1,23 @@
+.picker {
+  display: grid;
+  gap: var(--gap);
+}
+
+.players {
+  display: grid;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.email {
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}

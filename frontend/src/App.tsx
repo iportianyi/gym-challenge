@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
+import styles from "./App.module.css";
 import { checkHealth } from "./api/health";
+import PlayerSession from "./components/PlayerSession";
 
 type ServerState = "checking" | "up" | "down";
 
@@ -22,9 +24,14 @@ export default function App() {
   }, []);
 
   return (
-    <main>
-      <h1>Welcome to Gym Challenge</h1>
-      <p role="status">{STATUS_TEXT[server]}</p>
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Welcome to Gym Challenge</h1>
+        <p role="status" className={styles.status} data-server={server}>
+          {STATUS_TEXT[server]}
+        </p>
+      </header>
+      <PlayerSession />
     </main>
   );
 }
