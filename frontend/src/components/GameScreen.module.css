@@ -1,0 +1,196 @@
+/* The game screen in the «Табло» look (add-game-screen, D8): the scoreboard is the biggest thing, the current
+   round is the one panel with a primary button, the round result has an amber edge, the history is compact. */
+.screen {
+  display: grid;
+  gap: var(--gap);
+}
+
+.back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--amber);
+  text-decoration: none;
+}
+
+.back::before {
+  content: "\2190";
+  margin-right: 0.4rem;
+}
+
+.offline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* "Ти 3 : 2 Тренер" — names at the edges, digits in the middle. */
+.board {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0.75rem;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.side {
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.side:first-child {
+  text-align: right;
+}
+
+.points {
+  font-size: 2.75rem;
+  line-height: 1;
+}
+
+.colon {
+  color: var(--steel);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.end {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  background: var(--amber);
+  color: var(--navy);
+}
+
+.headline {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.end .penalty {
+  color: var(--navy);
+}
+
+.current,
+.card,
+.history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.current,
+.card {
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.card {
+  border-left: 4px solid var(--amber);
+}
+
+.subheading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+}
+
+.value {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.both {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.fieldLabel {
+  font-weight: 600;
+}
+
+.number {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 0.75rem;
+  border: 1px solid var(--steel);
+  border-radius: var(--radius);
+  background: var(--navy);
+  font-size: 1.6rem;
+}
+
+.confirm {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.lines {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.lines p {
+  margin: 0;
+}
+
+.outcome {
+  font-weight: 700;
+}
+
+.penalty {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.rounds {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.round {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--panel-edge);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+}
+
+.roundNumber {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

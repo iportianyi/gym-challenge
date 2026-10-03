@@ -35,15 +35,15 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 4. Game screen
 
-- [ ] 4.1 `frontend/src/game/view.ts`: `viewGame(detail, me)` with the phase table of design D4 and the wording of
+- [x] 4.1 `frontend/src/game/view.ts`: `viewGame(detail, me)` with the phase table of design D4 and the wording of
   design D7; `frontend/src/game/view.test.ts` covers each phase row, the card rule and each phrase of D7. Verify the
   tests pass
-- [ ] 4.2 `useGame` hook with the timer chain, visibility pause, move abort, refused-move re-read and offline flag
+- [x] 4.2 `useGame` hook with the timer chain, visibility pause, move abort, refused-move re-read and offline flag
   of design D5. Verify the polling and refused-move scenarios in `GameScreen.test.tsx` pass
-- [ ] 4.3 `NumberEntry` (design D6) and the `GameScreen` components: scoreboard, current round, result card,
+- [x] 4.3 `NumberEntry` (design D6) and the `GameScreen` components: scoreboard, current round, result card,
   history, finished state, not found, back link; CSS modules on the «Табло» tokens (design D8). Verify every test in
   `GameScreen.test.tsx` passes and `pnpm lint` and `pnpm typecheck` are clean
-- [ ] 4.4 Commit (`feat(web): game screen with confirm step, result card, history and polling`)
+- [x] 4.4 Commit (`feat(web): game screen with confirm step, result card, history and polling`)
 
 ## 5. Run in the browser
 
