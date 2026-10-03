@@ -143,3 +143,23 @@ Zero-dependency fallback for any option: system font stack instead of the named 
 
 First start on an empty volume runs migration `0001` and creates the two players. Rollback of this change: revert
 the commits and drop the volume with `docker compose down -v` (no data worth keeping exists before this change).
+
+## Implementation notes
+
+What the code does beyond or differently from the decisions above, recorded during `/opsx:apply`:
+
+- **D2.** `database_url` is a required keyword argument of `create_app`, with no default, so no test or caller can
+  silently write `./gym.db`. The shared `client` test fixture now runs on a temp file (`open_client`). The red tests
+  used a separate `api` fixture, which was folded into `client` after the red commit (rename only).
+- **D4, stricter input.** Reps use Pydantic `strict=True`, so JSON `true` or `10.0` is a `422`, not silently `1`/`10`.
+  `opponent_email` is capped at 254 characters (`422` above that). The spec says "whole numbers" and does not
+  name these cases; they follow from it.
+- **D5, extra 401 path.** A `401` on `POST /api/games` (the player vanished between load and submit) also clears the
+  remembered player and returns to the picker, the same as the specified `401` on `GET /api/games`.
+- **D5, players always loaded.** `GET /api/players` runs on every load, not only for the picker, to show
+  `Ти граєш як <name>`. While it loads the name shows `…`.
+- **D5, CSS.** `.field .reps` repeats the DSEG7 face and amber colour of the global `.digits` class, because
+  `.field input` is more specific. Found in the Playwright check, where the numbers were white.
+- **D6.** `.dockerignore` also skips `**/*.db`, so a local database never enters the image.
+- **Task 5.3.** There is no screenshot of the empty list: the database already held games from the Docker check.
+  The empty state is covered by the Vitest scenario "No games yet".
