@@ -5,16 +5,16 @@ changes (proposal.md, Impact) and hand-written TS types instead of generated one
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 Backend: one pytest test per `players` and `games` API scenario (`backend/tests/test_players.py`,
+- [x] 1.1 Backend: one pytest test per `players` and `games` API scenario (`backend/tests/test_players.py`,
   `backend/tests/test_games.py`); `conftest.py` gains a `database_url` fixture on a file in `tmp_path` and passes it to
   `create_app`; restart scenarios start a second app on the same file; the `Гість` player is inserted with the stdlib
   `sqlite3` module so the red run does not depend on new packages. Run
   `docker compose --profile check run --rm backend-check pytest` and quote the failing lines
-- [ ] 1.2 Frontend: one Vitest test per UI scenario of `players` (picker, remember, change, 401) and `games`
+- [x] 1.2 Frontend: one Vitest test per UI scenario of `players` (picker, remember, change, 401) and `games`
   (list, empty, form success, two 422 texts, cancel) with a mocked `fetch` and jsdom `localStorage`. Run
   `docker compose --profile check run --rm frontend-check pnpm test` and quote the failing lines; existing
   `web-shell` tests still pass
-- [ ] 1.3 Commit the failing tests on their own (`test: red scenarios for players and games`)
+- [x] 1.3 Commit the failing tests on their own (`test: red scenarios for players and games`)
 
 ## 2. Dependencies and storage
 

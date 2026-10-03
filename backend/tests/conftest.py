@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
@@ -21,4 +21,26 @@ def frontend_dir(tmp_path: Path) -> Path:
 @pytest.fixture
 def client(frontend_dir: Path) -> Iterator[TestClient]:
     with TestClient(create_app(frontend_dir=frontend_dir)) as test_client:
+        yield test_client
+
+
+@pytest.fixture
+def database_url(tmp_path: Path) -> str:
+    """A SQLite file per test; a second app on the same URL sees the same data (restarts)."""
+    return f"sqlite:///{tmp_path / 'gym.db'}"
+
+
+@pytest.fixture
+def open_client(frontend_dir: Path, database_url: str) -> Callable[[], TestClient]:
+    """A fresh app on the test database per call (a new start): `with open_client() as c:`."""
+
+    def make() -> TestClient:
+        return TestClient(create_app(frontend_dir=frontend_dir, database_url=database_url))
+
+    return make
+
+
+@pytest.fixture
+def api(open_client: Callable[[], TestClient]) -> Iterator[TestClient]:
+    with open_client() as test_client:
         yield test_client
