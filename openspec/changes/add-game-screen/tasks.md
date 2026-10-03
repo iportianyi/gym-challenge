@@ -47,7 +47,7 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 5. Run in the browser
 
-- [ ] 5.1 Note whether the human's `app` container is running (`docker compose ps`); `docker compose up --build -d`
+- [x] 5.1 Note whether the human's `app` container is running (`docker compose ps`); `docker compose up --build -d`
   on the existing `gym-data` volume; with Playwright at 390×844 open two browser contexts as `Клієнт` and `Тренер`,
   create a game and play it to 5 points: check the hidden guess, the confirm step, the result card on both phones
   within ~3 s, the history and both finished views. Save screenshots of each phase in `.playwright-mcp/` and look at
@@ -55,7 +55,7 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 6. Journal
 
-- [ ] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, dependency, routing, game screen and the browser
+- [x] 6.1 Add rows to `docs/autonomy-log.md` for the red tests, dependency, routing, game screen and the browser
   run, including any agent mistakes and human interventions; add implementation notes to `design.md` if reality
   differed; commit with `.agent-log/actions.jsonl`
 

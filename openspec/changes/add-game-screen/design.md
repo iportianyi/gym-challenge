@@ -188,3 +188,26 @@ Checked with Playwright on `localhost` with two browser contexts (one per player
 ## Migration Plan
 
 Frontend only. Rollback: revert the commits of this change; the API and data are untouched.
+
+## Implementation notes
+
+- **Commands in the check container.** Task 1.3 said `pnpm test`; in `frontend-check` pnpm 11 first runs
+  `pnpm install` into the bind mount and fails with `EACCES`. The tools are called directly, as `make check` does
+  (`vitest run`, `eslint .`, `tsc --noEmit -p tsconfig.json`). A run outside `make` also needs `UID`/`GID` in the
+  environment (`env UID=$(id -u) GID=$(id -g) docker compose …`), otherwise the container runs as `1000` and cannot
+  write the lockfile.
+- **Adding the dependency.** `pnpm add react-router@8.4.0 --save-exact --lockfile-only` changes only
+  `package.json` and `pnpm-lock.yaml`; the packages are installed by the image build (`/app/node_modules`). It also
+  pulled `@remix-run/route-pattern` 0.22.1 and `cookie-es` 3.1.1.
+- **Group 3 shipped a minimal `GameScreen`** (heading, back link, not found, 401), so that the routing commit
+  builds and its scenarios run; group 4 replaced it with the full screen.
+- **`forgetPlayer` is a `useCallback`.** `GamesPage` and `useGame` reload when `onUnknownPlayer` changes; a new
+  function on every `PlayerSession` render (e.g. when the players list arrives) would have sent an extra request.
+- **Round lines are paragraphs, not a list,** so the history items stay the only list items of the history list.
+- **The number field has `noValidate`,** so `4.5` shows the app's message instead of the browser's own tooltip.
+- **Browser run (task 5.1),** `localhost:8000`, two Playwright contexts at 390×844: the coach saw the client's guess
+  as `Здогадка суперника вже є` after 3.3 s, with no `40` anywhere on the page; the round result card reached the
+  coach 2.8 s after the actual count; the game ended `Ти 5 : 0 Тренер` / `Ти 0 : 5 Клієнт`, `Твоя перемога`,
+  `Переможець — Клієнт`, `Твоє покарання: Присідання × 30`; the list showed `Завершена`; no horizontal overflow.
+  Screenshots: `.playwright-mcp/add-game-screen/` (not committed). The run created game 5 on the human's
+  `gym-data` volume. The `app` container was running before and is running after, on the new image.
