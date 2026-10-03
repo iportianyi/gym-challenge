@@ -17,10 +17,10 @@ dependency (`react-router`), no backend, API or Docker changes.
 
 ## 2. Dependency
 
-- [ ] 2.1 Add `react-router` `8.4.0` (exact) with `pnpm add` in the `frontend-check` container; verify
+- [x] 2.1 Add `react-router` `8.4.0` (exact) with `pnpm add` in the `frontend-check` container; verify
   `frontend/package.json` and `frontend/pnpm-lock.yaml` changed, `docker compose --profile check build
   frontend-check` succeeds and the existing tests still pass. On a DNS failure stop and ask the human (VPN)
-- [ ] 2.2 Commit (`chore(deps): add react-router 8.4.0 (frontend)`)
+- [x] 2.2 Commit (`chore(deps): add react-router 8.4.0 (frontend)`)
 
 ## 3. API client and routing
 
