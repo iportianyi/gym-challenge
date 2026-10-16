@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Defines who can play gym-challenge in the MVP — two default players without passwords — and how the browser and every
-API request say which of them is acting, so the app can tell the players' actions apart.
+Defines who plays gym-challenge: a player appears at their first Telegram login under a name they choose, is kept
+apart from the Telegram account they log in with, and can see the other players to choose an opponent.
 
 ## Requirements
 
