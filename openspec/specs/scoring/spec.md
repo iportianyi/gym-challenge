@@ -11,7 +11,7 @@ penalty and how many reps, when the game ends and what the loser of the game doe
 A settled round's distance for each player SHALL be `|guess − actual|`. The player with the smaller distance SHALL be
 the round's winner (`winner_id`) and SHALL get 1 point in `score`.
 
-In the scenarios below the game is between player `1` (creator) and player `2` (opponent) with base `10`, step `5`,
+In the scenarios below the game is between player `1` (organizer) and player `2` (opponent) with base `10`, step `5`,
 final `30` unless stated otherwise; a round is written as (guess of `1`, guess of `2`, actual).
 
 #### Scenario: Player 1 is closer

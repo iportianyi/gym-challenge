@@ -14,7 +14,7 @@ and `final_reps` SHALL be whole numbers from 1 to 1000; `step_reps` a whole numb
 any of these rules SHALL be answered with `422` and no game is created.
 
 #### Scenario: Exercise is blank
-- **WHEN** player `1` sends `POST /api/games` with the valid body from the first scenario of "Creator starts a game
+- **WHEN** player `1` sends `POST /api/games` with the valid body from the first scenario of "Organizer starts a game
   against a chosen player" but `"exercise": "   "`
 - **THEN** the response status is `422`
 
@@ -51,7 +51,7 @@ The system SHALL NOT limit how many active games a player has, including several
 
 ### Requirement: A player lists their own games, newest first
 `GET /api/games` SHALL return, as a JSON list in the shape of the create response, every game in which the acting
-player is the creator or the opponent, newest first, and no other games.
+player is the organizer or the opponent, newest first, and no other games.
 
 #### Scenario: Opponent sees the game
 - **WHEN** player `1` has created games with ids `1` and `2` against player `2`, and player `2` sends
@@ -86,12 +86,12 @@ After the player is known, the web app SHALL show the heading `Мої ігри` 
 
 #### Scenario: One game against Тренер
 - **WHEN** the app is opened as player `1` and `GET /api/games` returns the game from the first scenario of
-  "Creator starts a game against a chosen player"
+  "Organizer starts a game against a chosen player"
 - **THEN** the page shows the texts `Тренер` and `Присідання` inside the list of games
 - **AND** the page does not show `Ще немає ігор. Почни першу.`
 
 ### Requirement: Listed games show their current score
-Each game in `GET /api/games` SHALL carry its current `score` — a list of `{"player_id", "points"}`, the creator
+Each game in `GET /api/games` SHALL carry its current `score` — a list of `{"player_id", "points"}`, the organizer
 first — and `winner_id` (`null` until someone wins), computed from its settled rounds.
 
 #### Scenario: Score after one round
@@ -128,24 +128,6 @@ while `Мої ігри` is shown, so that a game created on the other phone appe
 #### Scenario: Tab becomes visible again
 - **WHEN** `Мої ігри` is shown, the page becomes hidden, and then visible again
 - **THEN** the app sends another `GET /api/games`
-
-### Requirement: Creator starts a game against a chosen player
-`POST /api/games` SHALL create an active game in which the acting player is the creator and the player whose id
-equals `opponent_id` is the opponent. It SHALL answer `201` with the game. The opponent does not need to accept the
-game.
-
-#### Scenario: Клієнт starts a game against Тренер
-- **WHEN** player `1` sends `POST /api/games` with body
-  `{"opponent_id": 2, "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30}`
-- **THEN** the response status is `201`
-- **AND** the body parsed as JSON equals
-  `{"id": 1, "creator": {"id": 1, "name": "Клієнт"}, "opponent": {"id": 2, "name": "Тренер"}, "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30, "status": "active", "score": [{"player_id": 1, "points": 0}, {"player_id": 2, "points": 0}], "winner_id": null}`
-
-#### Scenario: Тренер starts a game against Клієнт
-- **WHEN** player `2` sends `POST /api/games` with the same body but `"opponent_id": 1`
-- **THEN** the response status is `201`
-- **AND** the body's `creator` equals `{"id": 2, "name": "Тренер"}` and its `opponent` equals
-  `{"id": 1, "name": "Клієнт"}`
 
 ### Requirement: The form offers every other player as the opponent
 The new-game form SHALL have a select `Суперник` whose first option `Обери суперника` has no value, followed by one
@@ -213,3 +195,21 @@ SHALL stay on the form and show the error in Ukrainian.
 - **WHEN** on the form the person taps `Скасувати`
 - **THEN** the page shows the heading `Мої ігри`
 - **AND** no `POST /api/games` request is sent
+
+### Requirement: Organizer starts a game against a chosen player
+`POST /api/games` SHALL create an active game in which the acting player is the organizer and the player whose id
+equals `opponent_id` is the opponent. It SHALL answer `201` with the game. The opponent does not need to accept the
+game.
+
+#### Scenario: Клієнт starts a game against Тренер
+- **WHEN** player `1` sends `POST /api/games` with body
+  `{"opponent_id": 2, "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30}`
+- **THEN** the response status is `201`
+- **AND** the body parsed as JSON equals
+  `{"id": 1, "organizer": {"id": 1, "name": "Клієнт"}, "opponent": {"id": 2, "name": "Тренер"}, "exercise": "Присідання", "base_reps": 10, "step_reps": 5, "final_reps": 30, "status": "active", "score": [{"player_id": 1, "points": 0}, {"player_id": 2, "points": 0}], "winner_id": null}`
+
+#### Scenario: Тренер starts a game against Клієнт
+- **WHEN** player `2` sends `POST /api/games` with the same body but `"opponent_id": 1`
+- **THEN** the response status is `201`
+- **AND** the body's `organizer` equals `{"id": 2, "name": "Тренер"}` and its `opponent` equals
+  `{"id": 1, "name": "Клієнт"}`
