@@ -96,7 +96,8 @@ change deletes rather than extends them.
 
 ### D7. Frontend: `src/telegram.ts` owns `initData`
 
-- `takeInitData()` runs once at startup (before the router): if `location.hash` has `tgWebAppData`, store it in
+- `takeInitData()` runs once, in `App`'s first render before `BrowserRouter` (not in `main.tsx`: the tests render
+  `<App />` without it, and the router must see the address after the fragment is cleared): if `location.hash` has `tgWebAppData`, store it in
   `sessionStorage` (`gym-challenge.init-data`) and `history.replaceState` the address without the fragment, so the
   router sees a clean path; otherwise read `sessionStorage`. `sessionStorage` (per tab) matches Telegram's own
   behaviour on reload; storage errors fall back to memory, as `playerStore.ts` does today.
