@@ -140,7 +140,7 @@ describe("wording without gender or declension", () => {
 
   it("a doubled penalty ends with the mark", () => {
     const exact = { ...ROUND_1, penalty: { player_id: 2, reps: 20, doubled: true } };
-    expect(viewGame(game({ rounds: [exact] }), 1).history[0].penalty).toBe("Покарання суперника: Присідання × 20 (×2 точно)");
+    expect(viewGame(game({ rounds: [exact] }), 1).history[0].penalty).toBe("Покарання суперника: Присідання × 20 (×2\u00a0точно)");
   });
 
   it("the score and history are from the viewer's side, history newest first", () => {

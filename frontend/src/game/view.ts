@@ -33,8 +33,11 @@ export type GameView = {
   end: { headline: string; penalty: string | null } | null;
 };
 
+// A no-break space keeps the mark on one line on a narrow phone screen.
+const DOUBLED_MARK = " (×2\u00a0точно)";
+
 export function penaltyText(penalty: Penalty, me: number, exercise: string): string {
-  const what = `${exercise} × ${penalty.reps}${penalty.doubled ? " (×2 точно)" : ""}`;
+  const what = `${exercise} × ${penalty.reps}${penalty.doubled ? DOUBLED_MARK : ""}`;
   return penalty.player_id === me ? `Твоє покарання: ${what}` : `Покарання суперника: ${what}`;
 }
 

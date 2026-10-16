@@ -30,7 +30,7 @@
 - [x] 4.1 Add `doubled: boolean` to `Penalty` in `frontend/src/api/games.ts` and append ` (×2 точно)` in
   `penaltyText()` in `frontend/src/game/view.ts` when it is true (design D3); verify the Vitest scenarios from 2.2
   pass and `tsc` is clean
-- [ ] 4.2 Check the result card and the history in the browser (Playwright on `localhost`) with a round won by an
+- [x] 4.2 Check the result card and the history in the browser (Playwright on `localhost`) with a round won by an
   exact guess; verify the text `(×2 точно)` is visible and fits on a phone-width screen
 
 ## 5. Review and check

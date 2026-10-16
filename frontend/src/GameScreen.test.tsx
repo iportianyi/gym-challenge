@@ -538,7 +538,7 @@ describe("game-screen: A doubled penalty is marked", () => {
 
     const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
     expect(within(card).getByText(text("Твоє покарання: Присідання × 10"))).toBeTruthy();
-    expect(document.body.textContent).not.toContain("×2 точно");
+    expect(collapse(document.body.textContent)).not.toContain("×2 точно");
   });
 });
 
