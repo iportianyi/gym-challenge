@@ -18,3 +18,6 @@ __pycache__/
 
 # local SQLite databases (Docker keeps its own in a volume)
 *.db
+
+# JetBrains IDE settings
+.idea/
