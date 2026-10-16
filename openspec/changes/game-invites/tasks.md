@@ -57,7 +57,7 @@
   lands in round 1 while A's screen turns into round 1 by itself; both guess, A enters the actual count; context C
   (`1003 --start <token>`) sees `Це запрошення вже прийняв інший гравець.`; A's next `Нова гра` offers `Тренер`
   (the name B chose); save screenshots to `.playwright-mcp/`
-- [ ] 4.4 Update `docs/telegram-dev.md` (Ukrainian): `TELEGRAM_BOT_USERNAME` in `.env`, that the invite link needs the
+- [x] 4.4 Update `docs/telegram-dev.md` (Ukrainian): `TELEGRAM_BOT_USERNAME` in `.env`, that the invite link needs the
   Main Mini App (step 4), the dev link with `--start`, why a hybrid «Telegram + dev link» is impossible (proposal,
   decision 6); verify every command in it runs as written (except the ones that need the human's `.env`)
 
