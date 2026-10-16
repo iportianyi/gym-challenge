@@ -8,6 +8,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 WINNING_SCORE = 5
+EXACT_MULTIPLIER = 2  # an exact winning guess doubles the penalty (rules 5 and 7)
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,7 @@ class Played:
 class Penalty:
     player_id: int
     reps: int
+    doubled: bool  # True: the winner guessed exactly, reps are multiplied by EXACT_MULTIPLIER
 
 
 @dataclass(frozen=True)
@@ -67,18 +69,26 @@ def settle(players: tuple[int, int], rounds: Sequence[Played], settings: Setting
             continue
 
         winner, loser = players if first < second else players[::-1]
+        exact = min(first, second) == 0
+        multiplier = EXACT_MULTIPLIER if exact else 1
         points[winner] += 1
         streaks[winner] = 0
         streaks[loser] += 1
         if points[winner] == WINNING_SCORE:
             # Rule 7: the last round has no round penalty, only the final one.
             winner_id = winner
-            final_penalty = Penalty(player_id=loser, reps=settings.final_reps)
+            final_penalty = Penalty(
+                player_id=loser, reps=settings.final_reps * multiplier, doubled=exact
+            )
             outcomes.append(Outcome(winner_id=winner, penalty=None))
         else:
-            # Rule 5: base + (n - 1) * step, n = the loser's losses in a row.
-            reps = settings.base_reps + (streaks[loser] - 1) * settings.step_reps
-            outcomes.append(Outcome(winner_id=winner, penalty=Penalty(player_id=loser, reps=reps)))
+            # Rule 5: base + (n - 1) * step, n = the loser's losses in a row; × 2 if exact.
+            reps = (settings.base_reps + (streaks[loser] - 1) * settings.step_reps) * multiplier
+            outcomes.append(
+                Outcome(
+                    winner_id=winner, penalty=Penalty(player_id=loser, reps=reps, doubled=exact)
+                )
+            )
 
     return Standing(
         outcomes=tuple(outcomes), points=points, winner_id=winner_id, final_penalty=final_penalty

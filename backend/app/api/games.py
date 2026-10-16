@@ -48,6 +48,7 @@ class PointsPublic(SQLModel):
 class PenaltyPublic(SQLModel):
     player_id: int
     reps: int
+    doubled: bool
 
 
 class SettledGuess(SQLModel):
@@ -151,7 +152,7 @@ def load_states(session: Session, games: Sequence[Game]) -> list[GameState]:
 def penalty_public(penalty: Penalty | None) -> PenaltyPublic | None:
     if penalty is None:
         return None
-    return PenaltyPublic(player_id=penalty.player_id, reps=penalty.reps)
+    return PenaltyPublic(player_id=penalty.player_id, reps=penalty.reps, doubled=penalty.doubled)
 
 
 def to_public(state: GameState, players: dict[int, Player]) -> GamePublic:

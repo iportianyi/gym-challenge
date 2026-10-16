@@ -44,7 +44,7 @@ const ROUND_1 = {
   ],
   actual: 47,
   winner_id: 1,
-  penalty: { player_id: 2, reps: 10 },
+  penalty: { player_id: 2, reps: 10, doubled: false },
 };
 
 describe("phase table", () => {
@@ -128,7 +128,7 @@ describe("wording without gender or declension", () => {
     const over = game({
       status: "finished",
       winner_id: 1,
-      final_penalty: { player_id: 2, reps: 30 },
+      final_penalty: { player_id: 2, reps: 30, doubled: false },
       current_round: null,
     });
     expect(viewGame(over, 1).end).toEqual({
@@ -138,8 +138,13 @@ describe("wording without gender or declension", () => {
     expect(viewGame(over, 2).end).toEqual({ headline: "Переможець — Клієнт", penalty: "Твоє покарання: Присідання × 30" });
   });
 
+  it("a doubled penalty ends with the mark", () => {
+    const exact = { ...ROUND_1, penalty: { player_id: 2, reps: 20, doubled: true } };
+    expect(viewGame(game({ rounds: [exact] }), 1).history[0].penalty).toBe("Покарання суперника: Присідання × 20 (×2 точно)");
+  });
+
   it("the score and history are from the viewer's side, history newest first", () => {
-    const round2 = { ...ROUND_1, number: 2, winner_id: 2, penalty: { player_id: 1, reps: 10 } };
+    const round2 = { ...ROUND_1, number: 2, winner_id: 2, penalty: { player_id: 1, reps: 10, doubled: false } };
     const both = game({
       score: [
         { player_id: 1, points: 1 },

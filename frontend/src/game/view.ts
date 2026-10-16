@@ -34,7 +34,7 @@ export type GameView = {
 };
 
 export function penaltyText(penalty: Penalty, me: number, exercise: string): string {
-  const what = `${exercise} × ${penalty.reps}`;
+  const what = `${exercise} × ${penalty.reps}${penalty.doubled ? " (×2 точно)" : ""}`;
   return penalty.player_id === me ? `Твоє покарання: ${what}` : `Покарання суперника: ${what}`;
 }
 

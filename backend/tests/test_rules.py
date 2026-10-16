@@ -1,4 +1,4 @@
-"""Scenarios from openspec/changes/add-rounds-and-scoring/specs/scoring/spec.md,
+"""Scenarios from openspec/specs/scoring/spec.md (and the exact-guess-doubles-penalty delta),
 on the pure rules module."""
 
 import pytest
@@ -53,9 +53,9 @@ def test_three_losses_in_a_row() -> None:
     standing = settle(PLAYERS, [WIN_1, WIN_1, WIN_1], SETTINGS)
 
     assert [outcome.penalty for outcome in standing.outcomes] == [
-        Penalty(player_id=2, reps=10),
-        Penalty(player_id=2, reps=15),
-        Penalty(player_id=2, reps=20),
+        Penalty(player_id=2, reps=10, doubled=False),
+        Penalty(player_id=2, reps=15, doubled=False),
+        Penalty(player_id=2, reps=20, doubled=False),
     ]
 
 
@@ -63,10 +63,10 @@ def test_own_win_ends_the_streak() -> None:
     standing = settle(PLAYERS, [WIN_1, WIN_1, WIN_2, WIN_1], SETTINGS)
 
     assert [outcome.penalty for outcome in standing.outcomes] == [
-        Penalty(player_id=2, reps=10),
-        Penalty(player_id=2, reps=15),
-        Penalty(player_id=1, reps=10),
-        Penalty(player_id=2, reps=10),
+        Penalty(player_id=2, reps=10, doubled=False),
+        Penalty(player_id=2, reps=15, doubled=False),
+        Penalty(player_id=1, reps=10, doubled=False),
+        Penalty(player_id=2, reps=10, doubled=False),
     ]
 
 
@@ -74,10 +74,10 @@ def test_draw_ends_the_streak() -> None:
     standing = settle(PLAYERS, [WIN_1, WIN_1, DRAW, WIN_1], SETTINGS)
 
     assert [outcome.penalty for outcome in standing.outcomes] == [
-        Penalty(player_id=2, reps=10),
-        Penalty(player_id=2, reps=15),
+        Penalty(player_id=2, reps=10, doubled=False),
+        Penalty(player_id=2, reps=15, doubled=False),
         None,
-        Penalty(player_id=2, reps=10),
+        Penalty(player_id=2, reps=10, doubled=False),
     ]
 
 
@@ -86,7 +86,48 @@ def test_zero_step_keeps_the_reps() -> None:
 
     standing = settle(PLAYERS, [WIN_1, WIN_1, WIN_1], settings)
 
-    assert [outcome.penalty for outcome in standing.outcomes] == [Penalty(player_id=2, reps=10)] * 3
+    assert [outcome.penalty for outcome in standing.outcomes] == [
+        Penalty(player_id=2, reps=10, doubled=False)
+    ] * 3
+
+
+# Requirement: An exact winning guess doubles the penalty
+
+EXACT_1 = played(46, 40, 46)  # player 1 guesses exactly, player 2 loses
+NEAR_1 = played(45, 40, 46)  # player 1 is closer, not exact
+
+
+def test_exact_guess_doubles_the_first_penalty() -> None:
+    standing = settle(PLAYERS, [played(50, 47, 47)], SETTINGS)
+
+    assert standing.outcomes[0].winner_id == 2
+    assert standing.outcomes[0].penalty == Penalty(player_id=1, reps=20, doubled=True)
+
+
+def test_exact_guess_inside_a_loss_streak() -> None:
+    standing = settle(PLAYERS, [NEAR_1, EXACT_1, NEAR_1], SETTINGS)
+
+    assert [outcome.penalty for outcome in standing.outcomes] == [
+        Penalty(player_id=2, reps=10, doubled=False),
+        Penalty(player_id=2, reps=30, doubled=True),
+        Penalty(player_id=2, reps=20, doubled=False),
+    ]
+
+
+def test_both_guesses_exact_is_a_draw() -> None:
+    standing = settle(PLAYERS, [played(47, 47, 47)], SETTINGS)
+
+    assert standing.outcomes[0].winner_id is None
+    assert standing.outcomes[0].penalty is None
+    assert standing.points == {1: 0, 2: 0}
+
+
+def test_exact_guess_in_the_last_round_doubles_the_final_penalty() -> None:
+    standing = settle(PLAYERS, [NEAR_1] * 4 + [EXACT_1], SETTINGS)
+
+    assert standing.winner_id == 1
+    assert standing.outcomes[4].penalty is None
+    assert standing.final_penalty == Penalty(player_id=2, reps=60, doubled=True)
 
 
 # Requirement: The first player to 5 points wins the game
@@ -105,12 +146,12 @@ def test_fifth_point_ends_the_game() -> None:
 
     assert standing.winner_id == 1
     assert standing.points == {1: 5, 2: 0}
-    assert standing.final_penalty == Penalty(player_id=2, reps=30)
+    assert standing.final_penalty == Penalty(player_id=2, reps=30, doubled=False)
     assert [outcome.penalty for outcome in standing.outcomes] == [
-        Penalty(player_id=2, reps=10),
-        Penalty(player_id=2, reps=15),
-        Penalty(player_id=2, reps=20),
-        Penalty(player_id=2, reps=25),
+        Penalty(player_id=2, reps=10, doubled=False),
+        Penalty(player_id=2, reps=15, doubled=False),
+        Penalty(player_id=2, reps=20, doubled=False),
+        Penalty(player_id=2, reps=25, doubled=False),
         None,
     ]
 

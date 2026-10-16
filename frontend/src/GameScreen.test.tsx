@@ -1,4 +1,4 @@
-// UI scenarios from openspec/changes/add-game-screen/specs/game-screen/spec.md.
+// UI scenarios from openspec/specs/game-screen/spec.md (and the exact-guess-doubles-penalty delta).
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,7 +45,7 @@ const settled = (
   opponent: number,
   actual: number,
   winnerId: number | null,
-  penalty: { player_id: number; reps: number } | null,
+  penalty: { player_id: number; reps: number; doubled: boolean } | null,
 ) => ({
   number,
   guesses: [
@@ -74,19 +74,39 @@ const WON_BY_CLIENT = detail({
   status: "finished",
   score: points(5, 0),
   winner_id: 1,
-  final_penalty: { player_id: 2, reps: 30 },
+  final_penalty: { player_id: 2, reps: 30, doubled: false },
   rounds: [10, 15, 20, 25, null].map((reps, index) =>
-    settled(index + 1, 40, 60, 45, 1, reps === null ? null : { player_id: 2, reps }),
+    settled(index + 1, 40, 60, 45, 1, reps === null ? null : { player_id: 2, reps, doubled: false }),
   ),
   current_round: null,
 });
+
+// Player 1 has won 5:0 — rounds 1–4 settled as (45, 40, 46), round 5 as (46, 40, 46) with an exact guess.
+const WON_EXACTLY_BY_CLIENT = detail({
+  status: "finished",
+  score: points(5, 0),
+  winner_id: 1,
+  final_penalty: { player_id: 2, reps: 60, doubled: true },
+  rounds: [
+    ...[10, 15, 20, 25].map((reps, index) => settled(index + 1, 45, 40, 46, 1, { player_id: 2, reps, doubled: false })),
+    settled(5, 46, 40, 46, 1, null),
+  ],
+  current_round: null,
+});
+
+// Round 1 settled as (50, 47, 47): player 2 guessed exactly, player 1 does 10 × 2.
+const ROUND_1_EXACT = {
+  score: points(0, 1),
+  rounds: [settled(1, 50, 47, 47, 2, { player_id: 1, reps: 20, doubled: true })],
+  current_round: current(2),
+};
 
 /** Game 1 as `GET /api/games` lists it. */
 const LISTED = { ...SETTINGS, status: "active", score: points(0, 0), winner_id: null };
 
 const ROUND_1_SETTLED = {
   score: points(1, 0),
-  rounds: [settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10 })],
+  rounds: [settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10, doubled: false })],
   current_round: current(2),
 };
 
@@ -436,8 +456,8 @@ describe("game-screen: The screen shows every settled round", () => {
             detail({
               score: points(1, 1),
               rounds: [
-                settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10 }),
-                settled(2, 50, 47, 47, 2, { player_id: 1, reps: 10 }),
+                settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10, doubled: false }),
+                settled(2, 50, 47, 47, 2, { player_id: 1, reps: 20, doubled: true }),
               ],
               current_round: current(3),
             }),
@@ -453,7 +473,7 @@ describe("game-screen: The screen shows every settled round", () => {
     expect(within(items[0]).getByText(text("Раунд 2"))).toBeTruthy();
     expect(within(items[1]).getByText(text("Раунд 1"))).toBeTruthy();
     expect(within(items[0]).getByText(text("Переможець раунду — Тренер"))).toBeTruthy();
-    expect(within(items[0]).getByText(text("Твоє покарання: Присідання × 10"))).toBeTruthy();
+    expect(within(items[0]).getByText(text("Твоє покарання: Присідання × 20 (×2 точно)"))).toBeTruthy();
   });
 
   it("new game has no history", async () => {
@@ -482,6 +502,43 @@ describe("game-screen: A finished game shows its winner and the final penalty", 
 
     expect(await screen.findByText(text("Переможець — Клієнт"))).toBeTruthy();
     expect(screen.getByText(text("Твоє покарання: Присідання × 30"))).toBeTruthy();
+  });
+});
+
+describe("game-screen: A doubled penalty is marked", () => {
+  it("doubled round penalty in the result card", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_EXACT))] } });
+    openApp("/games/1", 1);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    expect(within(card).getByText(text("Твоє покарання: Присідання × 20 (×2 точно)"))).toBeTruthy();
+  });
+
+  it("doubled round penalty in the history", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_EXACT))] } });
+    openApp("/games/1", 2);
+
+    const history = await screen.findByRole("list", { name: "Історія раундів" });
+    const [item] = within(history).getAllByRole("listitem");
+    expect(within(item).getByText(text("Раунд 1"))).toBeTruthy();
+    expect(within(item).getByText(text("Покарання суперника: Присідання × 20 (×2 точно)"))).toBeTruthy();
+  });
+
+  it("doubled final penalty", async () => {
+    stubApi({ gets: { 1: [ok(WON_EXACTLY_BY_CLIENT)] } });
+    openApp("/games/1", 2);
+
+    expect(await screen.findByText(text("Переможець — Клієнт"))).toBeTruthy();
+    expect(screen.getByText(text("Твоє покарання: Присідання × 60 (×2 точно)"))).toBeTruthy();
+  });
+
+  it("penalty that was not doubled has no mark", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
+    openApp("/games/1", 2);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    expect(within(card).getByText(text("Твоє покарання: Присідання × 10"))).toBeTruthy();
+    expect(document.body.textContent).not.toContain("×2 точно");
   });
 });
 

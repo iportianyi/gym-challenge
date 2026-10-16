@@ -102,7 +102,7 @@ def test_one_settled_round(client: TestClient) -> None:
             "guesses": [{"player_id": 1, "value": 40}, {"player_id": 2, "value": 55}],
             "actual": 47,
             "winner_id": 1,
-            "penalty": {"player_id": 2, "reps": 10},
+            "penalty": {"player_id": 2, "reps": 10, "doubled": False},
         }
     ]
     assert game["current_round"] == {"number": 2, "guesses": NO_GUESSES}
@@ -341,15 +341,25 @@ def test_full_game_through_the_api(client: TestClient) -> None:
     assert listed[0]["score"] == [{"player_id": 1, "points": 5}, {"player_id": 2, "points": 0}]
     game = detail(client, game_id, AS_COACH)
     assert game["current_round"] is None
-    assert game["final_penalty"] == {"player_id": 2, "reps": 30}
+    assert game["final_penalty"] == {"player_id": 2, "reps": 30, "doubled": False}
     # "Fifth point ends the game", through the API: streak penalties and none for the last round.
     assert [settled["penalty"] for settled in game["rounds"]] == [
-        {"player_id": 2, "reps": 10},
-        {"player_id": 2, "reps": 15},
-        {"player_id": 2, "reps": 20},
-        {"player_id": 2, "reps": 25},
+        {"player_id": 2, "reps": 10, "doubled": False},
+        {"player_id": 2, "reps": 15, "doubled": False},
+        {"player_id": 2, "reps": 20, "doubled": False},
+        {"player_id": 2, "reps": 25, "doubled": False},
         None,
     ]
+
+
+def test_doubled_penalty_through_the_api(client: TestClient) -> None:
+    # Not a spec scenario: guards that the API passes `doubled` on instead of a fixed false.
+    game_id = new_game(client)
+    play(client, game_id, 50, 47, 47)
+
+    game = detail(client, game_id, AS_CLIENT)
+
+    assert game["rounds"][0]["penalty"] == {"player_id": 1, "reps": 20, "doubled": True}
 
 
 # Migration 0002 on data from add-game-setup (design, Risks; tasks 1.2 and 3.1)
