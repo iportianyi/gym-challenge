@@ -49,10 +49,10 @@
   `TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-local_dev_bot}` to `app` in `docker-compose.yml`; ask the human to
   add `TELEGRAM_BOT_USERNAME=` to `.env.example` (and the dev bot's username to `.env`) and commit it themselves;
   verify `docker compose config --quiet` succeeds and `docker compose up --build` starts the app without `.env`
-- [ ] 4.2 `scripts/dev-login-link.mjs --start <token>`: `start_param` in the signed fields, `?tgWebAppStartParam=` in
+- [x] 4.2 `scripts/dev-login-link.mjs --start <token>`: `start_param` in the signed fields, `?tgWebAppStartParam=` in
   the URL, token checked against `^[A-Za-z0-9_-]{1,512}$` (design D10); verify that a link for `--id 1002 --start
   <token of a real invite>` opened with Playwright joins that game
-- [ ] 4.3 Browser check with Playwright at 375 px width: context A (`1001`) creates an invite and sees the waiting
+- [x] 4.3 Browser check with Playwright at 375 px width: context A (`1001`) creates an invite and sees the waiting
   screen with the link and `Скопійовано` after copying; context B (`1002 --start <token>`) passes the name form and
   lands in round 1 while A's screen turns into round 1 by itself; both guess, A enters the actual count; context C
   (`1003 --start <token>`) sees `Це запрошення вже прийняв інший гравець.`; A's next `Нова гра` offers `Тренер`
