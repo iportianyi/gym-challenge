@@ -63,14 +63,15 @@
 
 ## 5. Check in Telegram
 
-- [ ] 5.1 Ask the human to turn on the VPN and run `docker compose --profile tunnel up --build`; on the phone the human
+- [x] 5.1 Ask the human to turn on the VPN and run `docker compose --profile tunnel up --build`; on the phone the human
   creates an invite, checks `Копіювати посилання` and `Надіслати в Telegram`, opens their own link from a chat and
   sees the waiting game; record what worked in the review packet. If the share link misbehaves, propose a separate
   spec commit that removes it (copy stays) and wait for the human's decision
+  — 2026-10-17, the human: everything worked (copy, share to a chat, own link opens the waiting game); share stays
 
 ## 6. Docs and harness
 
-- [ ] 6.1 `docs/spec.md` v2.4: record the decisions of this change in «Вирішено» (link format and
+- [x] 6.1 `docs/spec.md` v2.4: record the decisions of this change in «Вирішено» (link format and
   `TELEGRAM_BOT_USERNAME`, copy/share without the Telegram script, token on the game without expiry or cancel, what
   the opener sees, the waiting game, how invites are checked) and close «тимчасовий список гравців»; update the
   `players` Purpose in `openspec/specs/players/spec.md` (players no longer see each other in a list); commit as
