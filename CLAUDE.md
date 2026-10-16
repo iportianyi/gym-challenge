@@ -10,7 +10,8 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
 - `docker compose up --build` — застосунок на http://localhost:8000 (API під `/api`, фронтенд на `/`).
 - `docker compose --profile tunnel up --build` — плюс тунель ngrok для бота розробки (потрібен `.env`, кроки —
   `docs/telegram-dev.md`). `node scripts/dev-login-link.mjs --id 1001 --name Іван` — вхід без Telegram
-  (лише з `local-dev-token`, тобто без токена в `.env`); друга вкладка з іншим `--id` — другий гравець.
+  (лише з `local-dev-token`, тобто без токена в `.env`); друга вкладка з іншим `--id` — другий гравець;
+  `--start <токен>` — відкрити як за посиланням-запрошенням.
 - `make check` — **definition of done**: ruff, ty, pytest, ESLint, tsc, Vitest у Docker + `pnpm spec:check` на хості;
   успіх закінчується рядком `check: OK (backend, frontend, spec, secrets)`. Перед «готово» — запустити й процитувати.
 - Інструменти бекенду/фронтенду на хості не встановлені: лише через `make check` або
