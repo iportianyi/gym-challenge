@@ -6,9 +6,9 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, SQLModel, col, func, or_, select, update
+from sqlmodel import Session, SQLModel, col, or_, select, update
 
-from app.api.players import CurrentPlayerDep
+from app.auth import CurrentPlayerDep
 from app.db import SessionDep
 from app.models import Game, Guess, Player, Round
 from app.rules import Penalty, Played, Settings, Standing, settle
@@ -21,7 +21,7 @@ Count = Annotated[int, Field(strict=True, ge=0, le=500)]
 
 
 class GameCreate(BaseModel):
-    opponent_email: Annotated[str, StringConstraints(max_length=254)]
+    opponent_id: Annotated[int, Field(strict=True)]
     exercise: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
     base_reps: Reps
     step_reps: Annotated[int, Field(strict=True, ge=0, le=1000)]
@@ -238,8 +238,7 @@ def detail_for(session: Session, game: Game, me: Player) -> GameDetail:
 
 @router.post("", status_code=201)
 def create_game(body: GameCreate, me: CurrentPlayerDep, session: SessionDep) -> GamePublic:
-    email = body.opponent_email.strip().lower()
-    opponent = session.exec(select(Player).where(func.lower(Player.email) == email)).first()
+    opponent = session.get(Player, body.opponent_id)
     if opponent is None:
         raise HTTPException(status_code=422, detail="Opponent not found")
     if opponent.id == me.id:
@@ -248,7 +247,7 @@ def create_game(body: GameCreate, me: CurrentPlayerDep, session: SessionDep) -> 
     game = Game(
         creator_id=me.id,
         opponent_id=opponent.id,
-        **body.model_dump(exclude={"opponent_email"}),
+        **body.model_dump(exclude={"opponent_id"}),
     )
     session.add(game)
     session.flush()

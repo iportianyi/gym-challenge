@@ -1,13 +1,26 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import BigInteger, Column, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
 class Player(SQLModel, table=True):
+    # Apart from how the person logs in, so other login methods can be added later
+    # (docs/spec.md v2.0).
     id: int | None = Field(default=None, primary_key=True)
     name: str
-    email: str = Field(unique=True)
+
+
+class TelegramAccount(SQLModel, table=True):
+    # Telegram user ids do not fit in 32 bits. The primary key makes one account belong to one
+    # player.
+    __tablename__ = "telegram_account"
+
+    telegram_user_id: int = Field(
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=False)
+    )
+    player_id: int = Field(foreign_key="player.id", unique=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Game(SQLModel, table=True):

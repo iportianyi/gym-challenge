@@ -42,11 +42,19 @@ def api_fallback(api: APIRouter) -> Callable[[Request, str], None]:
     return endpoint
 
 
-def create_app(frontend_dir: Path | None = None, *, database_url: str) -> FastAPI:
+def create_app(
+    frontend_dir: Path | None = None, *, database_url: str, bot_token: str | None
+) -> FastAPI:
+    """`bot_token` checks Telegram logins (telegram-auth); without one the app refuses to start."""
     engine = create_db_engine(database_url)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        if not bot_token:
+            # At startup, not at import: tests import this module without the variable (design D4).
+            raise RuntimeError(
+                "TELEGRAM_BOT_TOKEN is not set: the bot token is needed to check logins"
+            )
         # One process (`fastapi run`), so migrating at startup cannot race another worker.
         run_migrations(engine)
         yield
@@ -54,6 +62,7 @@ def create_app(frontend_dir: Path | None = None, *, database_url: str) -> FastAP
 
     app = FastAPI(title="gym-challenge", lifespan=lifespan)
     app.state.engine = engine
+    app.state.bot_token = bot_token
 
     api = APIRouter(prefix="/api")
     api.include_router(health.router)
@@ -83,4 +92,8 @@ def frontend_dir_from_env() -> Path | None:
     return Path(value) if value else None
 
 
-app = create_app(frontend_dir_from_env(), database_url=database_url_from_env())
+app = create_app(
+    frontend_dir_from_env(),
+    database_url=database_url_from_env(),
+    bot_token=os.environ.get("TELEGRAM_BOT_TOKEN"),
+)
