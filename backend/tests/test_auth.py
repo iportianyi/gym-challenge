@@ -1,13 +1,15 @@
 """API scenarios from openspec/changes/telegram-auth/specs/telegram-auth/spec.md."""
 
+import time
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.auth import TelegramUser, verify_init_data
 from app.main import create_app
-from tests.conftest import login, sign_fields, sign_init_data
+from tests.conftest import BOT_TOKEN, login, sign_fields, sign_init_data
 
 INVALID_LOGIN = {"detail": "Invalid Telegram login"}
 
@@ -123,3 +125,38 @@ def test_health_check_does_not_need_a_login(client: TestClient) -> None:
     response = client.get("/api/health")
 
     assert response.status_code == 200
+
+
+# verify_init_data on its own (design D1): one case per way a login is refused.
+
+USER = '{"id": 1001, "first_name": "Іван"}'
+# Signed when the module loads: fresh for the 24 h check, so each case fails for its own reason.
+NOW = str(int(time.time()))
+
+
+def signed(**fields: str) -> str:
+    return urlencode(sign_fields(fields))
+
+
+def test_verify_accepts_a_signed_login() -> None:
+    raw = signed(auth_date=NOW, user=USER)
+
+    assert verify_init_data(raw, BOT_TOKEN, time.time()) == TelegramUser(id=1001, first_name="Іван")
+
+
+@pytest.mark.parametrize(
+    ("case", "raw"),
+    [
+        ("not a query string", "hash"),
+        ("no hash", urlencode({"auth_date": NOW, "user": USER})),
+        ("repeated key", signed(auth_date=NOW, user=USER) + "&user=" + USER),
+        ("auth_date missing", signed(user=USER)),
+        ("auth_date not a number", signed(auth_date="soon", user=USER)),
+        ("user not JSON", signed(auth_date=NOW, user="Іван")),
+        ("user not an object", signed(auth_date=NOW, user="[1001]")),
+        ("user id not an integer", signed(auth_date=NOW, user='{"id": "1001"}')),
+        ("user id is a boolean", signed(auth_date=NOW, user='{"id": true}')),
+    ],
+)
+def test_verify_refuses(case: str, raw: str) -> None:
+    assert verify_init_data(raw, BOT_TOKEN, time.time()) is None, case
