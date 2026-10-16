@@ -6,7 +6,6 @@
   "permissions": {
     "allow": [
       "Read",
-      "Bash(node scripts/agent-log-summary.mjs *)",
       "Bash(node scripts/hooks-selftest.mjs)",
       "Bash(git status *)",
       "Bash(git diff *)",
@@ -14,7 +13,6 @@
       "Bash(pnpm exec openspec *)",
       "Bash(pnpm spec:check)",
       "Bash(pnpm openspec:pin)",
-      "Bash(pnpm agent:log *)",
       "Bash(pnpm hooks:selftest)",
       "Bash(make check)",
       "Bash(node scripts/secret-scan.mjs *)",
@@ -43,43 +41,6 @@
             "type": "command",
             "command": "node",
             "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/protect-env.mjs"],
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/log-action.mjs"],
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/log-action.mjs"],
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/log-action.mjs"],
             "timeout": 10
           }
         ]

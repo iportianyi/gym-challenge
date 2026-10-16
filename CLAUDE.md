@@ -14,7 +14,7 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
   `docker compose --profile check run --rm backend-check|frontend-check <команда>`.
 - Docker у контейнерах розв'язує DNS лише з увімкненим VPN людини (`/etc/docker/daemon.json`); збій DNS — питати людину.
 
-## Порядок роботи (це докази для capstone — не порушувати)
+## Порядок роботи
 
 - **Spec перед кодом (OpenSpec).** Кожна зміна: `/opsx:propose <name>` → людина переглядає proposal/specs/tasks →
   коміт артефактів → `/opsx:apply` → **рев'ю** → `/opsx:archive`. `docs/spec.md` — продукт і правила («навіщо»),
@@ -24,25 +24,21 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
   готує пакет у scratchpad (`git log --stat` + `git diff` діапазону комітів зміни + вивід `make check`), передає
   назву зміни й шлях до пакета, і зберігає відповідь **дослівно** в `docs/reviews/<change>.md`. Знахідки FAIL —
   виправити або винести людині; REJECT — не архівувати. Промпт рецензента змінює лише людина.
-- **Червоний тест окремим комітом**, потім коміт, де він зеленіє. Не видаляти й не послаблювати тести, щоб стало зелено.
-- **Журнал довіри `docs/autonomy-log.md`** — новий рядок після кожного значного кроку, одразу, а не заднім числом.
-  Обов'язково записувати власні помилки агента й втручання людини (зупинила, відкотила, вирішила інакше).
+- Не видаляти й не послаблювати тести, щоб стало зелено.
 - Коміти: Conventional Commits англійською (`feat:`, `fix:`, `test:`, `docs:`, `chore:`), одна логічна зміна на коміт.
-  На коміти посилатимемося в PR — повідомлення мають бути змістовні.
+  Повідомлення мають бути змістовні.
 - **Зміни харнесу — окремим комітом**, не разом із кодом фічі (`.claude/`, `.mcp.json`, `CLAUDE.md`, `openspec/config.yaml`,
   `Makefile`-цілі перевірки). Навіть якщо це задача тієї самої OpenSpec-зміни. Причина: знахідка рецензента
   (`docs/reviews/add-project-skeleton.md`, №6) — у `feat`-коміті змішались код, allow-list і правила.
 
 ## Харнес
 
-- Hooks у `.claude/settings.json` пишуть кожен виклик інструмента в `.agent-log/actions.jsonl`; журнал комітимо разом зі зміною.
-- `node scripts/agent-log-summary.mjs` — що агент запропонував / виконав / що заблоковано.
-- `node scripts/hooks-selftest.mjs` — перевірка hooks без агента.
+- Hook `.claude/hooks/protect-env.mjs` блокує читання й редагування `.env*`; `node scripts/hooks-selftest.mjs` — його перевірка без агента.
 - OpenSpec — devDependency кореневого `package.json`: лише `pnpm exec openspec …`, ніколи «голий» `openspec` чи `openspec store`.
   `pnpm spec:check` — spec-gate (`validate --all --strict` + архів + «голі» виклики).
   Після `pnpm exec openspec update` — обов'язково `pnpm openspec:pin`; згенеровані `openspec-*` скіли й `/opsx:*` руками не правити.
-- Не редагувати `.agent-log/`, `.claude/hooks/`, `.claude/settings.json` без явного прохання людини — це шар спостереження.
-- Не вставляти секрети в команди: команди потрапляють у закомічений журнал.
+- Не редагувати `.claude/hooks/`, `.claude/settings.json` без явного прохання людини.
+- Не вставляти секрети в команди.
 - **Секрет-гейт на push:** `.githooks/pre-push` → `scripts/secret-scan.mjs` сканує додані рядки вихідних комітів і
   блокує push при збігу (значення не друкує). Активація на клоні — `pnpm githooks:install` (`core.hooksPath`,
   лише цей репо); `make check` падає, якщо гейт не активний. Не обходити `--no-verify`; збіг — показати людині.
