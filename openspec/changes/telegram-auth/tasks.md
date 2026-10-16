@@ -50,13 +50,13 @@
   with an exactly pinned `ngrok/ngrok` image (design D8); add `.env.example` with `TELEGRAM_BOT_TOKEN=`,
   `NGROK_AUTHTOKEN=`, `NGROK_URL=`; verify `docker compose config` and `docker compose --profile tunnel config`
   succeed and `docker compose up --build` starts the app without `.env`
-- [ ] 4.2 Add `scripts/dev-login-link.mjs` (design D9: signs with `local-dev-token` only, prints the link); verify a
+- [x] 4.2 Add `scripts/dev-login-link.mjs` (design D9: signs with `local-dev-token` only, prints the link); verify a
   link for `--id 1001 --name Іван` opened with Playwright on `http://localhost:8000` shows `Як тебе звати?` with
   `Іван`, and after `Почати` shows `Мої ігри`
-- [ ] 4.3 Browser check with Playwright: two contexts with links for `1001` and `1002`, player 1 creates a game
+- [x] 4.3 Browser check with Playwright: two contexts with links for `1001` and `1002`, player 1 creates a game
   against player 2 from the select, both guess, player 1 enters the actual count; the plain `http://localhost:8000`
   in a fresh context shows only `Відкрий Gym Challenge у Telegram`; screens fit 375 px width
-- [ ] 4.4 Write `docs/telegram-dev.md` (Ukrainian): creating the dev bot in @BotFather, setting the Mini App URL to
+- [x] 4.4 Write `docs/telegram-dev.md` (Ukrainian): creating the dev bot in @BotFather, setting the Mini App URL to
   `https://$NGROK_URL`, filling `.env` by hand, `docker compose --profile tunnel up --build`, the ngrok warning page,
   the dev link; verify every command in it runs as written (except the ones that need the human's `.env`)
 - [ ] 4.5 Ask the human to fill `.env` and run the tunnel, then open the dev bot in Telegram on a phone; record in

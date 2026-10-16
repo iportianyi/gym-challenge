@@ -8,9 +8,25 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: sqlite:////app/data/gym.db
+      # The development bot's token from .env; without it a fixed non-secret token for dev links
+      # (scripts/dev-login-link.mjs). The server refuses to start with an empty token.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-local-dev-token}
     volumes:
       # Games survive `docker compose down`; `down -v` deletes them.
       - gym-data:/app/data
+
+  # HTTPS for the development bot: `docker compose --profile tunnel up --build` (docs/telegram-dev.md).
+  # `:-` keeps every other compose command working without .env; the tunnel itself then fails to start.
+  tunnel:
+    profiles: [tunnel]
+    image: ngrok/ngrok:3.39.11-alpine
+    depends_on: [app]
+    command: http --url=${NGROK_URL:-} app:8000
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
+    ports:
+      # ngrok's request inspector, on this machine only.
+      - "127.0.0.1:4040:4040"
 
   backend-check:
     profiles: [check]
