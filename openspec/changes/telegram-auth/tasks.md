@@ -76,4 +76,5 @@
 
 - [x] 6.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   `docs/reviews/telegram-auth.md`
-- [ ] 6.2 Run the project check command (`make check`) and quote its summary line
+- [x] 6.2 Run the project check command (`make check`) and quote its summary line
+  — `check: OK (backend, frontend, spec, secrets)` (pytest 101 passed, Vitest 80 passed; tree `168fcc7`)
