@@ -45,7 +45,7 @@
 
 ## 4. Local run and Telegram development
 
-- [ ] 4.1 Ask the human to confirm the build-config change (CLAUDE.md «Межі»), then in `docker-compose.yml` add
+- [x] 4.1 Ask the human to confirm the build-config change (CLAUDE.md «Межі»), then in `docker-compose.yml` add
   `TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-local-dev-token}` to `app` and the `tunnel` service in profile `tunnel`
   with an exactly pinned `ngrok/ngrok` image (design D8); add `.env.example` with `TELEGRAM_BOT_TOKEN=`,
   `NGROK_AUTHTOKEN=`, `NGROK_URL=`; verify `docker compose config` and `docker compose --profile tunnel config`
