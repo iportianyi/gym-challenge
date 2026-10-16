@@ -83,4 +83,5 @@
 
 - [x] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   `docs/reviews/game-invites.md`
-- [ ] 7.2 Run the project check command (`make check`) and quote its summary line
+- [x] 7.2 Run the project check command (`make check`) and quote its summary line
+  — `check: OK (backend, frontend, spec, secrets)` (pytest 129 passed, Vitest 94 passed; tree `8db98a5`)
