@@ -362,6 +362,21 @@ def test_doubled_penalty_through_the_api(client: TestClient) -> None:
     assert game["rounds"][0]["penalty"] == {"player_id": 1, "reps": 20, "doubled": True}
 
 
+def test_exact_last_round_through_the_api(client: TestClient) -> None:
+    # scoring "Exact guess in the last round doubles the final penalty", through the API.
+    game_id = new_game(client)
+    for _ in range(4):
+        play(client, game_id, 45, 40, 46)
+    play(client, game_id, 46, 40, 46)
+
+    game = detail(client, game_id, AS_COACH)
+
+    assert game["status"] == "finished"
+    assert game["winner_id"] == 1
+    assert game["rounds"][4]["penalty"] is None
+    assert game["final_penalty"] == {"player_id": 2, "reps": 60, "doubled": True}
+
+
 # Migration 0002 on data from add-game-setup (design, Risks; tasks 1.2 and 3.1)
 
 

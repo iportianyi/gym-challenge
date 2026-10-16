@@ -35,6 +35,6 @@
 
 ## 5. Review and check
 
-- [ ] 5.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+- [x] 5.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   `docs/reviews/exact-guess-doubles-penalty.md`
-- [ ] 5.2 Run the project check command (`make check`) and quote its summary line
+- [x] 5.2 Run the project check command (`make check`) and quote its summary line
