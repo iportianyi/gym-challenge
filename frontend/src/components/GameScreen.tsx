@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { sendActual, sendGuess } from "../api/games";
+import { hasOpponent, sendActual, sendGuess } from "../api/games";
 import { useGame } from "../game/useGame";
 import { viewGame, type Phase, type RoundView } from "../game/view";
 import styles from "./GameScreen.module.css";
@@ -27,6 +28,23 @@ export default function GameScreen({ initData, playerId, onLoginRefused }: Props
         <p className={ui.note}>
           {game === "not-found" ? "Гру не знайдено" : game === "loading" ? "Завантажуємо гру…" : "Не вдалося завантажити гру."}
         </p>
+      </section>
+    );
+  }
+
+  if (!hasOpponent(game)) {
+    return (
+      <section className={styles.screen} aria-labelledby="game-heading">
+        {back}
+        <h2 id="game-heading" className={ui.heading}>
+          Гра: {game.exercise}
+        </h2>
+        {offline && (
+          <p role="status" className={styles.offline}>
+            Немає зв'язку, пробуємо ще
+          </p>
+        )}
+        {game.invite_url !== null && <WaitingForOpponent inviteUrl={game.invite_url} />}
       </section>
     );
   }
@@ -166,5 +184,54 @@ function RoundLines({ round }: { round: RoundView }) {
       <p className={styles.outcome}>{round.outcome}</p>
       {round.penalty && <p className={styles.penalty}>{round.penalty}</p>}
     </div>
+  );
+}
+
+const SHARE_TEXT = "Зіграй зі мною в Gym Challenge";
+
+/**
+ * The organizer's waiting game: the invite link to send in Telegram (game-invites, design D8). No Telegram script:
+ * copy works everywhere; the share link opens Telegram's chat picker. `encodeURIComponent`, not URLSearchParams,
+ * which would write spaces as `+`.
+ */
+function WaitingForOpponent({ inviteUrl }: { inviteUrl: string }) {
+  const [copied, setCopied] = useState<"no" | "yes" | "failed">("no");
+  const share = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(SHARE_TEXT)}`;
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied("yes");
+    } catch {
+      // No clipboard API (an old web view) or permission refused.
+      setCopied("failed");
+    }
+  }
+
+  return (
+    <section aria-labelledby="invite-heading" className={styles.invite}>
+      <h3 id="invite-heading" className={styles.subheading}>
+        Чекаємо суперника. Надішли йому посилання.
+      </h3>
+      <p className={styles.inviteUrl}>{inviteUrl}</p>
+      <div className={styles.actions}>
+        <button type="button" className={ui.secondary} onClick={copy}>
+          Копіювати посилання
+        </button>
+        <a className={`${ui.primary} ${styles.share}`} href={share} target="_blank" rel="noopener noreferrer">
+          Надіслати в Telegram
+        </a>
+      </div>
+      {copied === "yes" && (
+        <p role="status" className={styles.hint}>
+          Скопійовано
+        </p>
+      )}
+      {copied === "failed" && (
+        <p role="alert" className={ui.error}>
+          Не вдалося скопіювати. Виділи посилання й скопіюй вручну.
+        </p>
+      )}
+    </section>
   );
 }

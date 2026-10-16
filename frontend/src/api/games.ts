@@ -7,15 +7,16 @@ export type PlayerRef = { id: number; name: string };
 export type Points = { player_id: number; points: number };
 export type Penalty = { player_id: number; reps: number; doubled: boolean };
 
+/** A game waiting for its opponent (game-invites) has `opponent` null, `score` [] and no rounds. */
 export type Game = {
   id: number;
   organizer: PlayerRef;
-  opponent: PlayerRef;
+  opponent: PlayerRef | null;
   exercise: string;
   base_reps: number;
   step_reps: number;
   final_reps: number;
-  status: "active" | "finished";
+  status: "waiting" | "active" | "finished";
   score: Points[];
   winner_id: number | null;
 };
@@ -38,10 +39,18 @@ export type GameDetail = Game & {
   final_penalty: Penalty | null;
   rounds: SettledRound[];
   current_round: CurrentRound | null;
+  /** The invite link, only for the organizer of a waiting game. */
+  invite_url: string | null;
 };
 
+/** A game with both players: everything but a waiting game. */
+export type PlayedGame = GameDetail & { opponent: PlayerRef };
+
+export const hasOpponent = (game: GameDetail): game is PlayedGame => game.opponent !== null;
+
+/** Without `opponent_id` the server creates an invite game. */
 export type NewGame = {
-  opponent_id: number;
+  opponent_id?: number;
   exercise: string;
   base_reps: number;
   step_reps: number;
@@ -95,3 +104,20 @@ async function move(initData: string, id: number, kind: "guesses" | "actual", va
 
 export const sendGuess = (initData: string, id: number, value: number) => move(initData, id, "guesses", value);
 export const sendActual = (initData: string, id: number, value: number) => move(initData, id, "actual", value);
+
+/** POST /api/games/join answers the joined game, or why the invite link cannot be joined (409, 404). */
+export type JoinResult = GameDetail | "used" | "not-found";
+
+export async function joinGame(initData: string, token: string, signal?: AbortSignal): Promise<JoinResult> {
+  const response = await fetch("/api/games/join", {
+    method: "POST",
+    signal,
+    headers: headers(initData),
+    body: JSON.stringify({ token }),
+  });
+  if (response.status === 401) throw new LoginRefusedError();
+  if (response.status === 409) return "used";
+  if (response.status === 404) return "not-found";
+  if (response.status !== 200) throw new Error(`POST /api/games/join answered ${response.status}`);
+  return (await response.json()) as GameDetail;
+}

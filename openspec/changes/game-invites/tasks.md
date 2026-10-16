@@ -32,15 +32,15 @@
 
 ## 3. Frontend
 
-- [ ] 3.1 `src/api/games.ts` (`joinGame`, nullable `opponent`, `"waiting"`, `invite_url`) and `src/api/players.ts`
+- [x] 3.1 `src/api/games.ts` (`joinGame`, nullable `opponent`, `"waiting"`, `invite_url`) and `src/api/players.ts`
   (`fetchOpponents` instead of `fetchPlayers`); verify `tsc` is clean through `frontend-check`
-- [ ] 3.2 `src/telegram.ts`: `takeInitData()` returns `{ initData, startParam }`, the start parameter only on launch,
+- [x] 3.2 `src/telegram.ts`: `takeInitData()` returns `{ initData, startParam }`, the start parameter only on launch,
   `tgWebAppStartParam` removed from the address (design D7); `PlayerSession` gets the `joining` and `join-failed`
   states; verify the invites "web app joins" and "cannot be joined" Vitest scenarios pass
-- [ ] 3.3 `NewGameForm`: select with `Запросити за посиланням` first, known opponents after it, body without
+- [x] 3.3 `NewGameForm`: select with `Запросити за посиланням` first, known opponents after it, body without
   `opponent_id` for an invite, the load-error note (design D8); verify the `games` form scenarios and "Create an invite
   from the form" pass
-- [ ] 3.4 `GameList` waiting row and `GameScreen` waiting block with copy and share (design D8); verify the `games`
+- [x] 3.4 `GameList` waiting row and `GameScreen` waiting block with copy and share (design D8); verify the `games`
   list scenarios and the invites waiting-screen scenarios pass, and ESLint is clean
 
 ## 4. Local run and development tools

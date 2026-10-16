@@ -7,3 +7,18 @@
   margin: 0;
   font-weight: 600;
 }
+
+/* "← Мої ігри" under a message, as on the game screen. */
+.back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--amber);
+  text-decoration: none;
+}
+
+.back::before {
+  content: "\2190";
+  margin-right: 0.4rem;
+}

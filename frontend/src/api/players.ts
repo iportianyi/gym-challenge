@@ -20,11 +20,11 @@ export async function registerMe(initData: string, name: string): Promise<Player
   return (await response.json()) as Player;
 }
 
-/** GET /api/players: every other player, for choosing an opponent (temporary until invitations). */
-export async function fetchPlayers(initData: string, signal?: AbortSignal): Promise<Player[]> {
-  const response = await fetch("/api/players", { signal, headers: headers(initData) });
+/** GET /api/opponents: the players I share a game with, the most recent first (game-invites). */
+export async function fetchOpponents(initData: string, signal?: AbortSignal): Promise<Player[]> {
+  const response = await fetch("/api/opponents", { signal, headers: headers(initData) });
   if (response.status === 401) throw new LoginRefusedError();
   const body: unknown = response.status === 200 ? await response.json() : null;
-  if (!Array.isArray(body)) throw new Error(`GET /api/players answered ${response.status}`);
+  if (!Array.isArray(body)) throw new Error(`GET /api/opponents answered ${response.status}`);
   return body as Player[];
 }

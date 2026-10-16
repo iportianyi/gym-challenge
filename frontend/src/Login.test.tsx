@@ -24,7 +24,7 @@ function stubApi(options: MeOptions & { gamesStatus?: number } = {}) {
         const status = options.gamesStatus ?? 200;
         return jsonResponse(status, status === 401 ? { detail: "Invalid Telegram login" } : []);
       }
-      if (url === "/api/players") return jsonResponse(200, []);
+      if (url === "/api/opponents") return jsonResponse(200, []);
       return jsonResponse(404, { detail: "Not Found" });
     }),
   );

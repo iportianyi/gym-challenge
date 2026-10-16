@@ -1,7 +1,7 @@
 // The phase table (design D4) and the wording (design D7) of add-game-screen, without rendering.
 import { describe, expect, it } from "vitest";
 
-import type { GameDetail } from "../api/games";
+import type { PlayedGame } from "../api/games";
 import { viewGame } from "./view";
 
 type Entry = number | "hidden" | null;
@@ -11,7 +11,7 @@ const entry = (playerId: number, value: Entry) => ({
   value: typeof value === "number" ? value : null,
 });
 
-function game(overrides: Partial<GameDetail> = {}): GameDetail {
+function game(overrides: Partial<PlayedGame> = {}): PlayedGame {
   return {
     id: 1,
     organizer: { id: 1, name: "Клієнт" },
@@ -29,6 +29,7 @@ function game(overrides: Partial<GameDetail> = {}): GameDetail {
     final_penalty: null,
     rounds: [],
     current_round: { number: 1, guesses: [entry(1, null), entry(2, null)] },
+    invite_url: null,
     ...overrides,
   };
 }

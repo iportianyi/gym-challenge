@@ -1,4 +1,4 @@
-import type { GameDetail, Penalty, SettledRound } from "../api/games";
+import type { Penalty, PlayedGame, SettledRound } from "../api/games";
 
 /**
  * What the game screen shows, from one API answer and the viewer's id (add-game-screen, D4). All words are built
@@ -41,7 +41,8 @@ export function penaltyText(penalty: Penalty, me: number, exercise: string): str
   return penalty.player_id === me ? `Твоє покарання: ${what}` : `Покарання суперника: ${what}`;
 }
 
-export function viewGame(game: GameDetail, me: number): GameView {
+/** Only for a game with both players; the screen of a waiting game is drawn apart (game-invites). */
+export function viewGame(game: PlayedGame, me: number): GameView {
   const other = game.organizer.id === me ? game.opponent : game.organizer;
   const pointsOf = (id: number) => game.score.find((entry) => entry.player_id === id)?.points ?? 0;
 
@@ -85,7 +86,7 @@ export function viewGame(game: GameDetail, me: number): GameView {
 }
 
 /** The phase table of design D4. */
-function phaseOf(game: GameDetail, me: number, otherId: number): Phase {
+function phaseOf(game: PlayedGame, me: number, otherId: number): Phase {
   const current = game.current_round;
   if (game.status === "finished" || current === null) return { kind: "over" };
   const mine = current.guesses.find((entry) => entry.player_id === me);

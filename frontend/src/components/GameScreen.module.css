@@ -194,3 +194,34 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+
+/* The organizer's waiting game: the link in a panel with an amber edge, copy and share side by side. */
+.invite {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.inviteUrl {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--steel);
+  border-radius: var(--radius);
+  background: var(--navy);
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.share {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}

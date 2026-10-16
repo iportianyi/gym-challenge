@@ -29,6 +29,7 @@ export default function GameList({ games, playerId, onNewGame }: Props) {
 }
 
 function GameRow({ game, playerId }: { game: Game; playerId: number }) {
+  // No opponent while the game waits for someone to open its invite link (game-invites).
   const other = game.organizer.id === playerId ? game.opponent : game.organizer;
   const pointsOf = (id: number) => game.score.find((entry) => entry.player_id === id)?.points ?? 0;
   return (
@@ -36,16 +37,23 @@ function GameRow({ game, playerId }: { game: Game; playerId: number }) {
       <div className={styles.head}>
         <Link to={`/games/${game.id}`} className={styles.title}>
           <span className={styles.label}>Проти</span>
-          <span className={styles.opponent}>{other.name}</span>
+          {other === null ? (
+            <span className={styles.waiting}>Чекаємо суперника</span>
+          ) : (
+            <span className={styles.opponent}>{other.name}</span>
+          )}
           <span className={styles.exercise}>{game.exercise}</span>
         </Link>
         {/* Score from the viewer's side: mine first (add-game-screen, games spec). */}
-        <div className={styles.score}>
-          <span role="group" aria-label="Рахунок" className={styles.points}>
-            <span className="digits">{pointsOf(playerId)}</span> : <span className="digits">{pointsOf(other.id)}</span>
-          </span>
-          {game.status === "finished" && <span className={styles.done}>Завершена</span>}
-        </div>
+        {other !== null && (
+          <div className={styles.score}>
+            <span role="group" aria-label="Рахунок" className={styles.points}>
+              <span className="digits">{pointsOf(playerId)}</span> :{" "}
+              <span className="digits">{pointsOf(other.id)}</span>
+            </span>
+            {game.status === "finished" && <span className={styles.done}>Завершена</span>}
+          </div>
+        )}
       </div>
       {/* The penalty in reps, read like a scoreboard: first loss, add per loss in a row, lost game. */}
       <dl className={styles.board}>

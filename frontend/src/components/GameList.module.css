@@ -44,6 +44,13 @@
   text-decoration-color: var(--amber);
 }
 
+/* Waiting for someone to open the invite link: in place of the opponent's name, quieter. */
+.waiting {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 1.1rem;
+}
+
 .score {
   display: grid;
   justify-items: end;
