@@ -122,7 +122,7 @@ Telegram logins through the tunnel; without it, only dev links (D9). `.env.examp
 values. `docs/telegram-dev.md` (Ukrainian) gives the @BotFather steps (create the dev bot, set the Mini App / menu
 button URL to `https://$NGROK_URL`) and the run commands.
 
-If the human picks cloudflared: the service becomes `cloudflare/cloudflared` with
+Not chosen (decision 1): with cloudflared the service would be `cloudflare/cloudflared` with
 `tunnel --no-autoupdate --url http://app:8000`, no token variables, and the docs say to copy the printed
 `trycloudflare.com` address into @BotFather each session.
 

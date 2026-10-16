@@ -37,8 +37,9 @@ server knows who is acting, so this is the first of the three agreed changes: **
 
 The specs, design and tasks are written for the **recommended** option of each decision.
 
-**Status (2026-10-16, human):** decisions 2–5 accepted as recommended. Decision 1 (tunnel) is still under
-discussion; its answer is folded in with `/opsx:update` before `/opsx:apply` starts group 4.
+**Status (2026-10-16, human):** all five decisions accepted as recommended; decision 1 — ngrok with the free static
+domain (cloudflared with a script that updates the bot's menu button through `setChatMenuButton` was discussed and
+not chosen: a stable address and the direct `t.me` link matter more than avoiding an ngrok account).
 
 1. **Tunnel for the development bot — ngrok or cloudflared.**
    - *(Recommended)* **ngrok with the free static domain**: one fixed `https://<name>.ngrok-free.app` set once in
