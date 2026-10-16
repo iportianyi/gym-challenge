@@ -1,39 +1,56 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
-import { createGame, UnknownPlayerError, type Game } from "../api/games";
-import type { Player } from "../api/players";
+import { createGame, type Game } from "../api/games";
+import { LoginRefusedError } from "../api/http";
+import { fetchPlayers, type Player } from "../api/players";
 import styles from "./NewGameForm.module.css";
 import ui from "./ui.module.css";
 
 type Props = {
-  playerId: number;
-  /** Everyone the player can invite; their emails are shown as a hint under the email field. */
-  opponents: Player[];
+  initData: string;
   onCreated: (game: Game) => void;
   onCancel: () => void;
-  onUnknownPlayer: () => void;
+  onLoginRefused: () => void;
 };
 
 const SERVER_ERRORS: Record<string, string> = {
-  "Opponent not found": "Гравця з таким email немає",
-  "Cannot play against yourself": "Це твій email. Введи email суперника.",
+  "Opponent not found": "Такого гравця немає. Обери іншого.",
 };
 const GENERIC_ERROR = "Не вдалося створити гру. Перевір поля.";
 const NETWORK_ERROR = "Сервер недоступний. Спробуй ще раз.";
 
-/** A 422 stays on the form with a Ukrainian message; a 401 hands back to the picker via `onUnknownPlayer`. */
-export default function NewGameForm({ playerId, opponents, onCreated, onCancel, onUnknownPlayer }: Props) {
+/**
+ * A 422 stays on the form with a Ukrainian message; a 401 goes to the refused-login message via `onLoginRefused`.
+ * The opponents are every other player, a temporary list until invitations (telegram-auth, decision 5).
+ */
+export default function NewGameForm({ initData, onCreated, onCancel, onLoginRefused }: Props) {
+  const [opponents, setOpponents] = useState<Player[] | "loading" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchPlayers(initData, controller.signal).then(setOpponents, (caught: unknown) => {
+      if (controller.signal.aborted) return;
+      if (caught instanceof LoginRefusedError) onLoginRefused();
+      else setOpponents("error");
+    });
+    return () => controller.abort();
+  }, [initData, onLoginRefused]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const opponentId = String(form.get("opponent_id") ?? "");
+    if (opponentId === "") {
+      setError("Обери суперника зі списку");
+      return;
+    }
     setSending(true);
     setError(null);
     try {
-      const result = await createGame(playerId, {
-        opponent_email: String(form.get("opponent_email")),
+      const result = await createGame(initData, {
+        opponent_id: Number(opponentId),
         exercise: String(form.get("exercise")),
         base_reps: Number(form.get("base_reps")),
         step_reps: Number(form.get("step_reps")),
@@ -45,8 +62,8 @@ export default function NewGameForm({ playerId, opponents, onCreated, onCancel, 
       }
       setError(SERVER_ERRORS[String(result.detail)] ?? GENERIC_ERROR);
     } catch (caught) {
-      if (caught instanceof UnknownPlayerError) {
-        onUnknownPlayer();
+      if (caught instanceof LoginRefusedError) {
+        onLoginRefused();
         return;
       }
       setError(NETWORK_ERROR);
@@ -54,30 +71,31 @@ export default function NewGameForm({ playerId, opponents, onCreated, onCancel, 
     setSending(false);
   }
 
+  // Nobody to play against yet, or the list failed: a game cannot be started.
+  const noOpponents = opponents === "error" || (Array.isArray(opponents) && opponents.length === 0);
+
   return (
     <section className={styles.section} aria-labelledby="new-game-heading">
       <h2 id="new-game-heading" className={ui.heading}>
         Нова гра
       </h2>
       <form className={styles.form} onSubmit={submit}>
-        <Field id="opponent_email" label="Email суперника">
-          <input
-            id="opponent_email"
-            name="opponent_email"
-            type="email"
-            required
-            autoComplete="off"
-            aria-describedby={opponents.length > 0 ? "opponent_hint" : undefined}
-          />
-          {opponents.length > 0 && (
-            <ul id="opponent_hint" className={styles.hint}>
-              {opponents.map((player) => (
-                <li key={player.id}>
-                  {player.name}: {player.email}
-                </li>
+        <Field id="opponent_id" label="Суперник">
+          <select id="opponent_id" name="opponent_id" defaultValue="" aria-describedby="opponent_note">
+            <option value="">Обери суперника</option>
+            {Array.isArray(opponents) &&
+              opponents.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name}
+                </option>
               ))}
-            </ul>
-          )}
+          </select>
+          <p id="opponent_note" className={styles.hint}>
+            {opponents === "error" && "Не вдалося завантажити гравців."}
+            {Array.isArray(opponents) &&
+              opponents.length === 0 &&
+              "Поки немає інших гравців. Попроси суперника відкрити Gym Challenge у Telegram."}
+          </p>
         </Field>
         {error && (
           <p className={ui.error} role="alert">
@@ -97,7 +115,7 @@ export default function NewGameForm({ playerId, opponents, onCreated, onCancel, 
           <RepsInput id="final_reps" min={1} />
         </Field>
         <div className={styles.actions}>
-          <button type="submit" className={ui.primary} disabled={sending}>
+          <button type="submit" className={ui.primary} disabled={sending || noOpponents}>
             Почати гру
           </button>
           <button type="button" className={ui.secondary} onClick={onCancel}>

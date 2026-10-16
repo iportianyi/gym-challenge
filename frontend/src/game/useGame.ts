@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { fetchGame, UnknownPlayerError, type GameDetail, type MoveResult } from "../api/games";
+import { fetchGame, type GameDetail, type MoveResult } from "../api/games";
+import { LoginRefusedError } from "../api/http";
 
 export const POLL_MS = 3000;
 
@@ -14,7 +15,7 @@ export type GameState = {
  * One game, kept fresh (add-game-screen, D5): a single chain of `setTimeout`s, so requests never overlap; no timer
  * while the page is hidden or the game is over; a move aborts the poll in flight and its answer wins.
  */
-export function useGame(playerId: number, id: number, onUnknownPlayer: () => void) {
+export function useGame(initData: string, id: number, onLoginRefused: () => void) {
   const [state, setState] = useState<GameState>({ game: "loading", offline: false });
   const moveRef = useRef<(send: () => Promise<MoveResult>) => Promise<void>>(async () => {});
 
@@ -41,10 +42,10 @@ export function useGame(playerId: number, id: number, onUnknownPlayer: () => voi
     };
 
     const failed = (error: unknown) => {
-      if (error instanceof UnknownPlayerError) {
+      if (error instanceof LoginRefusedError) {
         alive = false;
         stop();
-        onUnknownPlayer();
+        onLoginRefused();
         return;
       }
       setState((shown) => (typeof shown.game === "object" ? { ...shown, offline: true } : { game: "error", offline: false }));
@@ -55,7 +56,7 @@ export function useGame(playerId: number, id: number, onUnknownPlayer: () => voi
       const controller = new AbortController();
       inflight = controller;
       try {
-        show(await fetchGame(playerId, id, controller.signal));
+        show(await fetchGame(initData, id, controller.signal));
       } catch (error) {
         if (controller.signal.aborted) return;
         failed(error);
@@ -93,7 +94,7 @@ export function useGame(playerId: number, id: number, onUnknownPlayer: () => voi
       stop();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [playerId, id, onUnknownPlayer]);
+  }, [initData, id, onLoginRefused]);
 
   const move = useCallback((send: () => Promise<MoveResult>) => moveRef.current(send), []);
   return { ...state, move };

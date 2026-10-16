@@ -1,15 +1,9 @@
-// UI scenarios from openspec/specs/game-screen/spec.md (and the exact-guess-doubles-penalty delta).
+// UI scenarios from openspec/specs/game-screen/spec.md (and the exact-guess-doubles-penalty and telegram-auth deltas).
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
-
-const STORAGE_KEY = "gym-challenge.player-id";
-
-const PLAYERS = [
-  { id: 1, name: "Клієнт", email: "client@gym.local" },
-  { id: 2, name: "Тренер", email: "coach@gym.local" },
-];
+import { answerMe, freshTab, jsonResponse, openInTelegram, tma, type MeOptions } from "./test/telegram";
 
 // Game 1 of the spec: Клієнт (1, creator) against Тренер (2), Присідання, base 10, step 5, final 30.
 const SETTINGS = {
@@ -110,9 +104,6 @@ const ROUND_1_SETTLED = {
   current_round: current(2),
 };
 
-const jsonResponse = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
-
 type Answer = { status: number; body: unknown; next?: unknown } | "network";
 const ok = (body: unknown): Answer => ({ status: 200, body });
 type Call = { url: string; method: string; headers: Headers; body: unknown };
@@ -122,7 +113,7 @@ type Call = { url: string; method: string; headers: Headers; body: unknown };
  * `.../guesses` or `.../actual` takes the next answer of `posts`; a `200` body, or a refusal's `next`, becomes what
  * the following `GET` returns.
  */
-function stubApi(options: { gets?: Record<number, Answer[]>; posts?: Answer[]; games?: unknown[] } = {}) {
+function stubApi(options: { gets?: Record<number, Answer[]>; posts?: Answer[]; games?: unknown[]; me?: MeOptions } = {}) {
   const gets: Record<number, Answer[]> = { 1: [ok(detail())], ...options.gets };
   const posts = [...(options.posts ?? [])];
   const calls: Call[] = [];
@@ -132,13 +123,14 @@ function stubApi(options: { gets?: Record<number, Answer[]>; posts?: Answer[]; g
       const url = String(input);
       const method = (init.method ?? "GET").toUpperCase();
       const body = typeof init.body === "string" ? JSON.parse(init.body) : undefined;
-      calls.push({ url, method, headers: new Headers(init.headers), body });
+      const headers = new Headers(init.headers);
+      calls.push({ url, method, headers, body });
       const reply = (answer: Answer) => {
         if (answer === "network") throw new TypeError("Failed to fetch");
         return jsonResponse(answer.status, answer.body);
       };
-      if (url === "/api/health") return jsonResponse(200, { status: "ok" });
-      if (url === "/api/players") return jsonResponse(200, PLAYERS);
+      const me = answerMe(url, method, headers, body, options.me);
+      if (me) return me;
       if (url === "/api/games" && method === "GET") return jsonResponse(200, options.games ?? [LISTED]);
       const game = /^\/api\/games\/(\d+)$/.exec(url);
       if (game && method === "GET") {
@@ -171,10 +163,9 @@ const text = (wanted: string) => (_: string, element: Element | null) =>
   collapse(element.textContent) === wanted &&
   Array.from(element.children).every((child) => collapse(child.textContent) !== wanted);
 
-/** Loads the app at `path` as `player` (or with nobody remembered). */
-function openApp(path: string, player: number | null) {
-  window.history.replaceState(null, "", path);
-  if (player !== null) localStorage.setItem(STORAGE_KEY, String(player));
+/** Loads the app at `path`, opened from Telegram as `player`. */
+function openApp(path: string, player: number) {
+  openInTelegram(path, player);
   return render(<App />);
 }
 
@@ -192,8 +183,7 @@ async function typeAndNext(label: string, value: string) {
 }
 
 beforeEach(() => {
-  localStorage.clear();
-  window.history.replaceState(null, "", "/");
+  freshTab();
   visibility = "visible";
   Object.defineProperty(document, "visibilityState", { configurable: true, get: () => visibility });
 });
@@ -202,11 +192,11 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.unstubAllGlobals();
-  localStorage.clear();
+  freshTab();
   delete (document as { visibilityState?: unknown }).visibilityState;
 });
 
-describe("game-screen: A game has its own address", () => {
+describe("game-screen: Each game has its own address", () => {
   it("open from the list", async () => {
     const calls = stubApi();
     openApp("/", 1);
@@ -217,7 +207,7 @@ describe("game-screen: A game has its own address", () => {
     expect(await heading("Гра: Присідання")).toBeTruthy();
     expect(window.location.pathname).toBe("/games/1");
     const [get] = callsTo(calls, "GET", "/api/games/1");
-    expect(get.headers.get("X-Player-Id")).toBe("1");
+    expect(get.headers.get("Authorization")).toBe(tma(1));
   });
 
   it("open the address directly", async () => {
@@ -228,12 +218,12 @@ describe("game-screen: A game has its own address", () => {
     expect(screen.queryByRole("heading", { name: "Мої ігри" })).toBeNull();
   });
 
-  it("address opened before choosing a player", async () => {
-    stubApi();
-    openApp("/games/1", null);
+  it("address opened at the first login", async () => {
+    stubApi({ me: { me: "unregistered", register: [201, { id: 1, name: "Клієнт" }] } });
+    openApp("/games/1", 1);
 
-    expect(await heading("Хто ти?")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Я — Клієнт" }));
+    expect(await heading("Як тебе звати?")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Почати" }));
 
     expect(await heading("Гра: Присідання")).toBeTruthy();
     expect(window.location.pathname).toBe("/games/1");
@@ -248,7 +238,7 @@ describe("game-screen: A game has its own address", () => {
   });
 });
 
-describe("game-screen: The game screen leads back to my games", () => {
+describe("game-screen: A game that cannot be shown leads back to my games or to Telegram", () => {
   it("back to the list", async () => {
     stubApi();
     openApp("/games/1", 1);
@@ -268,12 +258,12 @@ describe("game-screen: The game screen leads back to my games", () => {
     expect(screen.getByRole("link", { name: "Мої ігри" })).toBeTruthy();
   });
 
-  it("remembered player rejected on the game screen", async () => {
-    stubApi({ gets: { 1: [{ status: 401, body: { detail: "Unknown player" } }] } });
-    openApp("/games/1", 7);
+  it("login refused on the game screen", async () => {
+    stubApi({ gets: { 1: [{ status: 401, body: { detail: "Invalid Telegram login" } }] } });
+    openApp("/games/1", 1);
 
-    expect(await heading("Хто ти?")).toBeTruthy();
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(await screen.findByText("Вхід застарів. Закрий і знову відкрий застосунок у Telegram.")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Гра: Присідання" })).toBeNull();
   });
 });
 
@@ -308,7 +298,7 @@ describe("game-screen: A guess is sent only after a confirm step", () => {
     fireEvent.click(screen.getByRole("button", { name: "Надіслати" }));
     await waitFor(() => expect(callsTo(calls, "POST", "/api/games/1/guesses")).toHaveLength(1));
     const [post] = callsTo(calls, "POST", "/api/games/1/guesses");
-    expect(post.headers.get("X-Player-Id")).toBe("1");
+    expect(post.headers.get("Authorization")).toBe(tma(1));
     expect(post.body).toEqual({ value: 47 });
   });
 
@@ -392,7 +382,7 @@ describe("game-screen: The creator enters the actual count after a confirm step"
     fireEvent.click(screen.getByRole("button", { name: "Надіслати" }));
     await waitFor(() => expect(callsTo(calls, "POST", "/api/games/1/actual")).toHaveLength(1));
     const [post] = callsTo(calls, "POST", "/api/games/1/actual");
-    expect(post.headers.get("X-Player-Id")).toBe("1");
+    expect(post.headers.get("Authorization")).toBe(tma(1));
     expect(post.body).toEqual({ value: 47 });
   });
 });

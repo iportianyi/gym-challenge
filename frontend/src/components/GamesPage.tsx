@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
-import { fetchGames, UnknownPlayerError, type Game } from "../api/games";
+import { fetchGames, type Game } from "../api/games";
+import { LoginRefusedError } from "../api/http";
 import GameList from "./GameList";
 import ui from "./ui.module.css";
 
-type Props = { playerId: number; onUnknownPlayer: () => void };
+type Props = { initData: string; playerId: number; onLoginRefused: () => void };
 
 /** "Мої ігри": loaded each time it is shown and again when the tab becomes visible (no timer, design D2). */
-export default function GamesPage({ playerId, onUnknownPlayer }: Props) {
+export default function GamesPage({ initData, playerId, onLoginRefused }: Props) {
   const [games, setGames] = useState<Game[] | "loading" | "error">("loading");
   const [reload, setReload] = useState(0);
   const navigate = useNavigate();
@@ -23,13 +24,13 @@ export default function GamesPage({ playerId, onUnknownPlayer }: Props) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchGames(playerId, controller.signal).then(setGames, (error: unknown) => {
+    fetchGames(initData, controller.signal).then(setGames, (error: unknown) => {
       if (controller.signal.aborted) return;
-      if (error instanceof UnknownPlayerError) onUnknownPlayer();
+      if (error instanceof LoginRefusedError) onLoginRefused();
       else setGames((shown) => (Array.isArray(shown) ? shown : "error"));
     });
     return () => controller.abort();
-  }, [playerId, reload, onUnknownPlayer]);
+  }, [initData, reload, onLoginRefused]);
 
   if (games === "loading" || games === "error") {
     return <p className={ui.note}>{games === "loading" ? "Завантажуємо ігри…" : "Не вдалося завантажити ігри."}</p>;

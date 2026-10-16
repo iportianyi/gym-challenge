@@ -1,15 +1,13 @@
-// UI scenarios from the players and games specs (add-game-setup, add-game-screen, polish-mvp-screens).
+// UI scenarios from the games spec (add-game-setup, add-game-screen, polish-mvp-screens, telegram-auth).
+// The player scenarios moved to Login.test.tsx with telegram-auth.
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+import { answerMe, freshTab, jsonResponse, openInTelegram, tma } from "./test/telegram";
 
-const STORAGE_KEY = "gym-challenge.player-id";
-
-const PLAYERS = [
-  { id: 1, name: "Клієнт", email: "client@gym.local" },
-  { id: 2, name: "Тренер", email: "coach@gym.local" },
-];
+/** `GET /api/players` as player 1 sees it by default: everyone else. */
+const OTHERS = [{ id: 2, name: "Тренер" }];
 
 const GAME = {
   id: 1,
@@ -27,19 +25,16 @@ const GAME = {
   winner_id: null,
 };
 
-const jsonResponse = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
-
 type Call = { url: string; method: string; headers: Headers; body: unknown };
 
 /**
- * A fake API: health is up, players are the defaults (or `playersStatus` with no list), games come from `games`;
- * POST answers `postAnswer`; `GET /api/games/{id}` answers `detail` (404 without it).
+ * A fake API: `/api/me` knows the test logins, `GET /api/players` answers `players` (or `playersStatus` with no
+ * list), games come from `games`; POST answers `postAnswer`; `GET /api/games/{id}` answers `detail` (404 without it).
  */
 function stubApi(
   options: {
     games?: unknown[];
-    gamesStatus?: number;
+    players?: unknown[];
     playersStatus?: number;
     postAnswer?: [number, unknown];
     detail?: unknown;
@@ -53,14 +48,16 @@ function stubApi(
       const url = String(input);
       const method = (init.method ?? "GET").toUpperCase();
       const body = typeof init.body === "string" ? JSON.parse(init.body) : undefined;
-      calls.push({ url, method, headers: new Headers(init.headers), body });
-      if (url === "/api/health") return jsonResponse(200, { status: "ok" });
+      const headers = new Headers(init.headers);
+      calls.push({ url, method, headers, body });
+      const me = answerMe(url, method, headers, body);
+      if (me) return me;
       if (url === "/api/players") {
-        return options.playersStatus === undefined ? jsonResponse(200, PLAYERS) : jsonResponse(options.playersStatus, null);
+        return options.playersStatus === undefined
+          ? jsonResponse(200, options.players ?? OTHERS)
+          : jsonResponse(options.playersStatus, null);
       }
-      if (url === "/api/games" && method === "GET") {
-        return jsonResponse(options.gamesStatus ?? 200, options.gamesStatus === 401 ? { detail: "Unknown player" } : games);
-      }
+      if (url === "/api/games" && method === "GET") return jsonResponse(200, games);
       if (url === "/api/games" && method === "POST") {
         const [status, answer] = options.postAnswer ?? [201, GAME];
         if (status === 201) games.unshift(answer);
@@ -76,10 +73,19 @@ function stubApi(
 const gameCalls = (calls: Call[], method: string) =>
   calls.filter((call) => call.url === "/api/games" && call.method === method);
 
-async function fillAndSubmitForm() {
+async function openForm() {
   fireEvent.click(await screen.findByRole("button", { name: "Нова гра" }));
   await screen.findByRole("heading", { name: "Нова гра" });
-  fireEvent.change(screen.getByLabelText("Email суперника"), { target: { value: "coach@gym.local" } });
+}
+
+/** Fills the settings `Присідання`, 10, 5, 30 and, unless `opponent` is null, chooses that option. */
+async function fillAndSubmitForm(opponent: string | null = "Тренер") {
+  await openForm();
+  if (opponent !== null) {
+    const select = screen.getByLabelText("Суперник");
+    await within(select).findByRole("option", { name: opponent });
+    fireEvent.change(select, { target: { value: within(select).getByRole("option", { name: opponent }).getAttribute("value") } });
+  }
   fireEvent.change(screen.getByLabelText("Вправа"), { target: { value: "Присідання" } });
   fireEvent.change(screen.getByLabelText("Повторень за першу поразку"), { target: { value: "10" } });
   fireEvent.change(screen.getByLabelText("Додати за кожну наступну поразку поспіль"), { target: { value: "5" } });
@@ -88,15 +94,14 @@ async function fillAndSubmitForm() {
 }
 
 beforeEach(() => {
-  localStorage.clear();
-  // jsdom keeps the address between tests; the game screen tests below move away from "/".
-  window.history.replaceState(null, "", "/");
+  // jsdom keeps the address and the tab's storage between tests; the game screen tests below move away from "/".
+  freshTab();
 });
 
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  localStorage.clear();
+  freshTab();
   delete (document as { visibilityState?: unknown }).visibilityState;
 });
 
@@ -106,73 +111,10 @@ function setVisibility(state: DocumentVisibilityState) {
   document.dispatchEvent(new Event("visibilitychange"));
 }
 
-describe("players: The browser asks who is using it", () => {
-  it("first open shows the picker with both players and their emails, no games", async () => {
-    stubApi();
-    render(<App />);
-
-    expect(await screen.findByRole("heading", { name: "Хто ти?" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Я — Клієнт" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Я — Тренер" })).toBeTruthy();
-    expect(screen.getByText("client@gym.local")).toBeTruthy();
-    expect(screen.getByText("coach@gym.local")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Мої ігри" })).toBeNull();
-  });
-});
-
-describe("players: The browser remembers the chosen player", () => {
-  it("picking a player shows who I play as, my games, and sends X-Player-Id", async () => {
-    const calls = stubApi();
-    render(<App />);
-
-    fireEvent.click(await screen.findByRole("button", { name: "Я — Тренер" }));
-
-    expect(await screen.findByText("Ти граєш як Тренер")).toBeTruthy();
-    expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
-    await waitFor(() => expect(gameCalls(calls, "GET").length).toBeGreaterThan(0));
-    expect(gameCalls(calls, "GET")[0].headers.get("X-Player-Id")).toBe("2");
-  });
-
-  it("reload keeps the choice", async () => {
-    stubApi();
-    const first = render(<App />);
-    fireEvent.click(await screen.findByRole("button", { name: "Я — Тренер" }));
-    await screen.findByText("Ти граєш як Тренер");
-    first.unmount();
-
-    render(<App />);
-
-    expect(await screen.findByText("Ти граєш як Тренер")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Хто ти?" })).toBeNull();
-  });
-
-  it("change player returns to the picker, also after a reload", async () => {
-    localStorage.setItem(STORAGE_KEY, "2");
-    stubApi();
-    const first = render(<App />);
-
-    fireEvent.click(await screen.findByRole("button", { name: "Змінити гравця" }));
-
-    expect(await screen.findByRole("heading", { name: "Хто ти?" })).toBeTruthy();
-    first.unmount();
-    render(<App />);
-    expect(await screen.findByRole("heading", { name: "Хто ти?" })).toBeTruthy();
-  });
-
-  it("a remembered player that the server rejects is cleared", async () => {
-    localStorage.setItem(STORAGE_KEY, "7");
-    stubApi({ gamesStatus: 401 });
-    render(<App />);
-
-    expect(await screen.findByRole("heading", { name: "Хто ти?" })).toBeTruthy();
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-  });
-});
-
 describe("games: The app lists my games", () => {
   it("no games yet", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     stubApi({ games: [] });
+    openInTelegram("/", 1);
     render(<App />);
 
     expect(await screen.findByText("Ще немає ігор. Почни першу.")).toBeTruthy();
@@ -180,8 +122,8 @@ describe("games: The app lists my games", () => {
   });
 
   it("one game against Тренер", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     stubApi({ games: [GAME] });
+    openInTelegram("/", 1);
     render(<App />);
 
     const list = await screen.findByRole("list", { name: "Мої ігри" });
@@ -191,9 +133,8 @@ describe("games: The app lists my games", () => {
   });
 });
 
-describe("games: The app creates a game from a form", () => {
+describe("games: The app creates a game with the chosen opponent", () => {
   it("successful create sends the body and opens the new game", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     const created = { ...GAME, id: 7 };
     const calls = stubApi({
       games: [],
@@ -211,6 +152,7 @@ describe("games: The app creates a game from a form", () => {
         },
       },
     });
+    openInTelegram("/", 1);
     render(<App />);
 
     await fillAndSubmitForm();
@@ -218,9 +160,9 @@ describe("games: The app creates a game from a form", () => {
     expect(await screen.findByRole("heading", { name: "Гра: Присідання" })).toBeTruthy();
     expect(window.location.pathname).toBe("/games/7");
     const [post] = gameCalls(calls, "POST");
-    expect(post.headers.get("X-Player-Id")).toBe("1");
+    expect(post.headers.get("Authorization")).toBe(tma(1));
     expect(post.body).toEqual({
-      opponent_email: "coach@gym.local",
+      opponent_id: 2,
       exercise: "Присідання",
       base_reps: 10,
       step_reps: 5,
@@ -228,30 +170,20 @@ describe("games: The app creates a game from a form", () => {
     });
   });
 
-  it("unknown opponent email keeps the form and explains the error", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+  it("opponent no longer exists", async () => {
     stubApi({ postAnswer: [422, { detail: "Opponent not found" }] });
+    openInTelegram("/", 1);
     render(<App />);
 
     await fillAndSubmitForm();
 
-    expect(await screen.findByText("Гравця з таким email немає")).toBeTruthy();
+    expect(await screen.findByText("Такого гравця немає. Обери іншого.")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Нова гра" })).toBeTruthy();
   });
 
-  it("own email explains the error", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
-    stubApi({ postAnswer: [422, { detail: "Cannot play against yourself" }] });
-    render(<App />);
-
-    await fillAndSubmitForm();
-
-    expect(await screen.findByText("Це твій email. Введи email суперника.")).toBeTruthy();
-  });
-
   it("cancel returns to my games without a request", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     const calls = stubApi();
+    openInTelegram("/", 1);
     render(<App />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Нова гра" }));
@@ -262,56 +194,65 @@ describe("games: The app creates a game from a form", () => {
   });
 });
 
-describe("games: The form names the other players' emails", () => {
-  async function openForm() {
-    fireEvent.click(await screen.findByRole("button", { name: "Нова гра" }));
-    await screen.findByRole("heading", { name: "Нова гра" });
-  }
+describe("games: The form offers every other player as the opponent", () => {
+  const startButton = () => screen.getByRole("button", { name: "Почати гру" }) as HTMLButtonElement;
 
-  it("Клієнт sees Тренер's email", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
-    stubApi();
+  it("Клієнт sees the other players", async () => {
+    stubApi({ players: [{ id: 2, name: "Тренер" }, { id: 3, name: "Гість" }] });
+    openInTelegram("/", 1);
     render(<App />);
-    await screen.findByText("Ти граєш як Клієнт");
 
     await openForm();
 
-    const hint = await screen.findByText("Тренер: coach@gym.local");
-    expect(screen.queryByText("Клієнт: client@gym.local")).toBeNull();
-    const field = screen.getByLabelText("Email суперника") as HTMLInputElement;
-    expect(field.value).toBe("");
-    // The field is described by the hint lines (assistive technology reads them with the field).
-    const described = (field.getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id));
-    expect(described.some((element) => element?.contains(hint))).toBe(true);
+    const select = screen.getByLabelText("Суперник") as HTMLSelectElement;
+    await within(select).findByRole("option", { name: "Гість" });
+    expect(within(select).getAllByRole("option").map((option) => option.textContent)).toEqual([
+      "Обери суперника",
+      "Тренер",
+      "Гість",
+    ]);
+    expect(select.selectedOptions[0].textContent).toBe("Обери суперника");
   });
 
-  it("Тренер sees Клієнт's email", async () => {
-    localStorage.setItem(STORAGE_KEY, "2");
-    stubApi();
+  it("nobody else yet", async () => {
+    stubApi({ players: [] });
+    openInTelegram("/", 1);
     render(<App />);
-    await screen.findByText("Ти граєш як Тренер");
 
     await openForm();
 
-    expect(await screen.findByText("Клієнт: client@gym.local")).toBeTruthy();
-    expect(screen.queryByText("Тренер: coach@gym.local")).toBeNull();
+    expect(
+      await screen.findByText("Поки немає інших гравців. Попроси суперника відкрити Gym Challenge у Telegram."),
+    ).toBeTruthy();
+    expect(startButton().disabled).toBe(true);
   });
 
-  it("players could not be loaded: the form works without the hint", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+  it("players could not be loaded", async () => {
     stubApi({ playersStatus: 500 });
+    openInTelegram("/", 1);
     render(<App />);
 
     await openForm();
 
-    expect(screen.getByLabelText("Email суперника")).toBeTruthy();
-    expect(screen.queryByText(/@gym\.local/)).toBeNull();
+    expect(await screen.findByText("Не вдалося завантажити гравців.")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Нова гра" })).toBeTruthy();
+    expect(startButton().disabled).toBe(true);
+  });
+
+  it("no opponent chosen", async () => {
+    const calls = stubApi();
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await fillAndSubmitForm(null);
+
+    expect(await screen.findByText("Обери суперника зі списку")).toBeTruthy();
+    expect(gameCalls(calls, "POST")).toHaveLength(0);
   });
 });
 
 describe("games: The list shows each game's score and whether it is finished", () => {
   it("active game seen by the opponent", async () => {
-    localStorage.setItem(STORAGE_KEY, "2");
     stubApi({
       games: [
         {
@@ -323,6 +264,7 @@ describe("games: The list shows each game's score and whether it is finished", (
         },
       ],
     });
+    openInTelegram("/", 2);
     render(<App />);
 
     const list = await screen.findByRole("list", { name: "Мої ігри" });
@@ -331,7 +273,6 @@ describe("games: The list shows each game's score and whether it is finished", (
   });
 
   it("finished game", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     stubApi({
       games: [
         {
@@ -345,6 +286,7 @@ describe("games: The list shows each game's score and whether it is finished", (
         },
       ],
     });
+    openInTelegram("/", 1);
     render(<App />);
 
     const list = await screen.findByRole("list", { name: "Мої ігри" });
@@ -355,7 +297,6 @@ describe("games: The list shows each game's score and whether it is finished", (
 
 describe("games: The list is reloaded when the player returns to it", () => {
   it("back from a game", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     const calls = stubApi({
       games: [GAME],
       detail: {
@@ -371,6 +312,7 @@ describe("games: The list is reloaded when the player returns to it", () => {
         },
       },
     });
+    openInTelegram("/", 1);
     render(<App />);
 
     const list = await screen.findByRole("list", { name: "Мої ігри" });
@@ -383,8 +325,8 @@ describe("games: The list is reloaded when the player returns to it", () => {
   });
 
   it("tab becomes visible again", async () => {
-    localStorage.setItem(STORAGE_KEY, "1");
     const calls = stubApi({ games: [GAME] });
+    openInTelegram("/", 1);
     render(<App />);
     await screen.findByRole("list", { name: "Мої ігри" });
     await waitFor(() => expect(gameCalls(calls, "GET")).toHaveLength(1));

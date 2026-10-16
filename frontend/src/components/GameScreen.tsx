@@ -7,12 +7,12 @@ import styles from "./GameScreen.module.css";
 import NumberEntry from "./NumberEntry";
 import ui from "./ui.module.css";
 
-type Props = { playerId: number; onUnknownPlayer: () => void };
+type Props = { initData: string; playerId: number; onLoginRefused: () => void };
 
 /** The screen of one game at /games/:id; everything shown comes from `viewGame` (add-game-screen, D4). */
-export default function GameScreen({ playerId, onUnknownPlayer }: Props) {
+export default function GameScreen({ initData, playerId, onLoginRefused }: Props) {
   const id = Number(useParams().id);
-  const { game, offline, move } = useGame(playerId, id, onUnknownPlayer);
+  const { game, offline, move } = useGame(initData, id, onLoginRefused);
 
   const back = (
     <Link to="/" className={styles.back}>
@@ -64,8 +64,8 @@ export default function GameScreen({ playerId, onUnknownPlayer }: Props) {
         <CurrentRound
           phase={view.phase}
           otherName={view.otherName}
-          onGuess={(value) => move(() => sendGuess(playerId, id, value))}
-          onActual={(value) => move(() => sendActual(playerId, id, value))}
+          onGuess={(value) => move(() => sendGuess(initData, id, value))}
+          onActual={(value) => move(() => sendActual(initData, id, value))}
         />
       )}
 

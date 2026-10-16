@@ -14,7 +14,8 @@
   font-size: 0.9rem;
 }
 
-.field input {
+.field input,
+.field select {
   box-sizing: border-box;
   width: 100%;
   min-height: var(--tap);
@@ -27,10 +28,12 @@
 
 .hint {
   margin: 0;
-  padding: 0;
-  list-style: none;
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.hint:empty {
+  display: none;
 }
 
 .field input:user-invalid {

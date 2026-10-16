@@ -1,84 +1,96 @@
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router";
 
-import { fetchPlayers, type Player } from "../api/players";
-import { clearPlayerId, loadPlayerId, savePlayerId } from "../playerStore";
+import { LoginRefusedError } from "../api/http";
+import { fetchMe, type Player } from "../api/players";
+import { forgetInitData } from "../telegram";
 import GameScreen from "./GameScreen";
 import GamesPage from "./GamesPage";
+import NameForm from "./NameForm";
 import NewGameForm from "./NewGameForm";
 import styles from "./PlayerSession.module.css";
-import PlayerPicker from "./PlayerPicker";
 import ui from "./ui.module.css";
 
-type Loaded<T> = { status: "loading" } | { status: "error" } | { status: "ready"; value: T };
+type Session =
+  | { status: "loading" }
+  | { status: "register" }
+  | { status: "ready"; player: Player }
+  | { status: "refused" }
+  | { status: "unreachable" };
+
+type Props = { initData: string | null };
 
 /**
- * Who is playing in this browser, and that player's screens by address (add-game-screen, D2). Without a player
- * the picker shows on any address, which is kept, so after the pick the same route renders.
+ * Who is playing in this tab, from the Telegram login (telegram-auth, design D7), and that player's screens by
+ * address. The address is kept while the name form or a message shows, so the same route renders afterwards.
  */
-export default function PlayerSession() {
-  const [playerId, setPlayerId] = useState<number | null>(loadPlayerId);
-  const [players, setPlayers] = useState<Loaded<Player[]>>({ status: "loading" });
+export default function PlayerSession({ initData }: Props) {
+  if (initData === null) return <p className={ui.note}>Відкрий Gym Challenge у Telegram</p>;
+  return <LoggedIn initData={initData} />;
+}
+
+function LoggedIn({ initData }: { initData: string }) {
+  const [session, setSession] = useState<Session>({ status: "loading" });
   const navigate = useNavigate();
+
+  // Stable, because the pages below reload their data when it changes.
+  const refuse = useCallback(() => {
+    forgetInitData();
+    setSession({ status: "refused" });
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-    fetchPlayers(controller.signal).then(
-      (value) => setPlayers({ status: "ready", value }),
-      () => {
-        if (!controller.signal.aborted) setPlayers({ status: "error" });
+    fetchMe(initData, controller.signal).then(
+      (me) => setSession(me === "not-registered" ? { status: "register" } : { status: "ready", player: me }),
+      (error: unknown) => {
+        if (controller.signal.aborted) return;
+        if (error instanceof LoginRefusedError) refuse();
+        else setSession({ status: "unreachable" });
       },
     );
     return () => controller.abort();
-  }, []);
+  }, [initData, refuse]);
 
-  function pick(player: Player) {
-    savePlayerId(player.id);
-    setPlayerId(player.id);
+  switch (session.status) {
+    case "loading":
+      return <p className={ui.note}>Завантажуємо…</p>;
+    case "refused":
+      return <p className={ui.note}>Вхід застарів. Закрий і знову відкрий застосунок у Telegram.</p>;
+    case "unreachable":
+      return <p className={ui.note}>Не вдалося зв'язатися з сервером.</p>;
+    case "register":
+      return (
+        <NameForm
+          initData={initData}
+          onRegistered={(player) => setSession({ status: "ready", player })}
+          onLoginRefused={refuse}
+        />
+      );
   }
 
-  // Stable, because the pages below reload their data when it changes.
-  const forgetPlayer = useCallback(() => {
-    clearPlayerId();
-    setPlayerId(null);
-  }, []);
-
-  if (playerId === null) {
-    if (players.status === "ready") return <PlayerPicker players={players.value} onPick={pick} />;
-    return (
-      <p className={ui.note}>{players.status === "loading" ? "Завантажуємо гравців…" : "Не вдалося завантажити гравців."}</p>
-    );
-  }
-
-  const me = players.status === "ready" ? players.value.find((player) => player.id === playerId) : undefined;
-  // The new-game form names their emails; none while the players are loading or failed (polish-mvp-screens, D1).
-  const others = players.status === "ready" ? players.value.filter((player) => player.id !== playerId) : [];
-
+  const { player } = session;
   return (
     <div className={styles.session}>
-      <div className={styles.who}>
-        <p className={styles.me}>Ти граєш як {me?.name ?? "…"}</p>
-        <button type="button" className={ui.link} onClick={forgetPlayer}>
-          Змінити гравця
-        </button>
-      </div>
-      {/* Keyed by player, so switching players never shows the previous player's data. */}
-      <Routes key={playerId}>
-        <Route path="/" element={<GamesPage playerId={playerId} onUnknownPlayer={forgetPlayer} />} />
+      <p className={styles.me}>Ти граєш як {player.name}</p>
+      <Routes>
+        <Route path="/" element={<GamesPage initData={initData} playerId={player.id} onLoginRefused={refuse} />} />
         <Route
           path="/games/new"
           element={
             <NewGameForm
-              playerId={playerId}
-              opponents={others}
+              initData={initData}
               // Replace the form in history: Back goes to the list, not to a form for a game that exists (D2).
               onCreated={(game) => navigate(`/games/${game.id}`, { replace: true })}
               onCancel={() => navigate("/")}
-              onUnknownPlayer={forgetPlayer}
+              onLoginRefused={refuse}
             />
           }
         />
-        <Route path="/games/:id" element={<GameScreen playerId={playerId} onUnknownPlayer={forgetPlayer} />} />
+        <Route
+          path="/games/:id"
+          element={<GameScreen initData={initData} playerId={player.id} onLoginRefused={refuse} />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

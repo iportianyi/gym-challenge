@@ -1,4 +1,6 @@
 // Hand-written to match backend/app/api/games.py (generated types are a follow-up, see add-game-setup design).
+import { headers, LoginRefusedError } from "./http";
+
 export type PlayerRef = { id: number; name: string };
 
 /** Per-player lists have one entry per player, the creator first (add-rounds-and-scoring, D4). */
@@ -39,45 +41,38 @@ export type GameDetail = Game & {
 };
 
 export type NewGame = {
-  opponent_email: string;
+  opponent_id: number;
   exercise: string;
   base_reps: number;
   step_reps: number;
   final_reps: number;
 };
 
-/** The server did not accept X-Player-Id (401): the remembered player must be chosen again. */
-export class UnknownPlayerError extends Error {}
-
 export type CreateResult = { ok: true; game: Game } | { ok: false; detail: unknown };
 
-function headers(playerId: number): HeadersInit {
-  return { Accept: "application/json", "Content-Type": "application/json", "X-Player-Id": String(playerId) };
-}
-
-export async function fetchGames(playerId: number, signal?: AbortSignal): Promise<Game[]> {
-  const response = await fetch("/api/games", { signal, headers: headers(playerId) });
-  if (response.status === 401) throw new UnknownPlayerError();
+export async function fetchGames(initData: string, signal?: AbortSignal): Promise<Game[]> {
+  const response = await fetch("/api/games", { signal, headers: headers(initData) });
+  if (response.status === 401) throw new LoginRefusedError();
   if (response.status !== 200) throw new Error(`GET /api/games answered ${response.status}`);
   return (await response.json()) as Game[];
 }
 
-export async function createGame(playerId: number, game: NewGame): Promise<CreateResult> {
+export async function createGame(initData: string, game: NewGame): Promise<CreateResult> {
   const response = await fetch("/api/games", {
     method: "POST",
-    headers: headers(playerId),
+    headers: headers(initData),
     body: JSON.stringify(game),
   });
-  if (response.status === 401) throw new UnknownPlayerError();
+  if (response.status === 401) throw new LoginRefusedError();
   const body: unknown = await response.json().catch(() => null);
   if (response.status === 201) return { ok: true, game: body as Game };
   return { ok: false, detail: (body as { detail?: unknown } | null)?.detail };
 }
 
 /** GET /api/games/{id}: the game as this player sees it, or "not-found" (404, also for someone else's game). */
-export async function fetchGame(playerId: number, id: number, signal?: AbortSignal): Promise<GameDetail | "not-found"> {
-  const response = await fetch(`/api/games/${id}`, { signal, headers: headers(playerId) });
-  if (response.status === 401) throw new UnknownPlayerError();
+export async function fetchGame(initData: string, id: number, signal?: AbortSignal): Promise<GameDetail | "not-found"> {
+  const response = await fetch(`/api/games/${id}`, { signal, headers: headers(initData) });
+  if (response.status === 401) throw new LoginRefusedError();
   if (response.status === 404) return "not-found";
   if (response.status !== 200) throw new Error(`GET /api/games/${id} answered ${response.status}`);
   return (await response.json()) as GameDetail;
@@ -86,17 +81,17 @@ export async function fetchGame(playerId: number, id: number, signal?: AbortSign
 /** A move answers the new game, or "refused" when the game's state did not allow it (409, 403). */
 export type MoveResult = GameDetail | "refused";
 
-async function move(playerId: number, id: number, kind: "guesses" | "actual", value: number): Promise<MoveResult> {
+async function move(initData: string, id: number, kind: "guesses" | "actual", value: number): Promise<MoveResult> {
   const response = await fetch(`/api/games/${id}/${kind}`, {
     method: "POST",
-    headers: headers(playerId),
+    headers: headers(initData),
     body: JSON.stringify({ value }),
   });
-  if (response.status === 401) throw new UnknownPlayerError();
+  if (response.status === 401) throw new LoginRefusedError();
   if (response.status === 409 || response.status === 403) return "refused";
   if (response.status !== 200) throw new Error(`POST /api/games/${id}/${kind} answered ${response.status}`);
   return (await response.json()) as GameDetail;
 }
 
-export const sendGuess = (playerId: number, id: number, value: number) => move(playerId, id, "guesses", value);
-export const sendActual = (playerId: number, id: number, value: number) => move(playerId, id, "actual", value);
+export const sendGuess = (initData: string, id: number, value: number) => move(initData, id, "guesses", value);
+export const sendActual = (initData: string, id: number, value: number) => move(initData, id, "actual", value);
