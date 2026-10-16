@@ -11,6 +11,8 @@ services:
       # The development bot's token from .env; without it a fixed non-secret token for dev links
       # (scripts/dev-login-link.mjs). The server refuses to start with an empty token.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-local-dev-token}
+      # The bot's username for invite links (t.me/<bot>?startapp=…); a placeholder without .env.
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-local_dev_bot}
     volumes:
       # Games survive `docker compose down`; `down -v` deletes them.
       - gym-data:/app/data

@@ -45,7 +45,7 @@
 
 ## 4. Local run and development tools
 
-- [ ] 4.1 Ask the human to confirm the build-config change (CLAUDE.md «Межі»), then add
+- [x] 4.1 Ask the human to confirm the build-config change (CLAUDE.md «Межі»), then add
   `TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-local_dev_bot}` to `app` in `docker-compose.yml`; ask the human to
   add `TELEGRAM_BOT_USERNAME=` to `.env.example` (and the dev bot's username to `.env`) and commit it themselves;
   verify `docker compose config --quiet` succeeds and `docker compose up --build` starts the app without `.env`
