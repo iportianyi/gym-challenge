@@ -64,11 +64,11 @@
 
 ## 5. Docs and harness
 
-- [ ] 5.1 Record decisions 1–5 in `docs/spec.md` («Вирішено»: tunnel, dev login, login kept per request for 24 h,
+- [x] 5.1 Record decisions 1–5 in `docs/spec.md` («Вирішено»: tunnel, dev login, login kept per request for 24 h,
   rename as a separate change, temporary player list; bump to v2.2) and update the `players` Purpose in
   `openspec/specs/players/spec.md` to describe Telegram registration; commit as `docs(spec)`; verify with
   `git show --stat HEAD` that only these files changed
-- [ ] 5.2 Harness, separate commit after showing the diff and getting the human's «так»: a Telegram bot token
+- [x] 5.2 Harness, separate commit after showing the diff and getting the human's «так»: a Telegram bot token
   pattern (`\b\d{8,10}:[A-Za-z0-9_-]{35}\b`) in `scripts/secret-scan.mjs` with its self-test case, and the tunnel /
   dev-link commands in `CLAUDE.md` «Команди»; verify `node scripts/secret-scan.mjs --self-test` passes
 
