@@ -5,7 +5,7 @@ import pytest
 
 from app.rules import Penalty, Played, Settings, settle
 
-PLAYERS = (1, 2)  # (creator, opponent)
+PLAYERS = (1, 2)  # (organizer, opponent)
 SETTINGS = Settings(base_reps=10, step_reps=5, final_reps=30)
 
 

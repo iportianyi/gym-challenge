@@ -37,7 +37,7 @@ class PlayerRef(SQLModel):
     name: str
 
 
-# Per-player values are lists of entries with player_id, the creator first (design D4).
+# Per-player values are lists of entries with player_id, the organizer first (design D4).
 
 
 class PointsPublic(SQLModel):
@@ -77,7 +77,7 @@ class CurrentRound(SQLModel):
 
 class GamePublic(SQLModel):
     id: int
-    creator: PlayerRef
+    organizer: PlayerRef
     opponent: PlayerRef
     exercise: str
     base_reps: int
@@ -104,7 +104,7 @@ class GameState:
 
     @property
     def players(self) -> tuple[int, int]:
-        return (self.game.creator_id, self.game.opponent_id)
+        return (self.game.organizer_id, self.game.opponent_id)
 
     @property
     def current(self) -> Round | None:
@@ -160,7 +160,7 @@ def to_public(state: GameState, players: dict[int, Player]) -> GamePublic:
     return GamePublic.model_validate(
         {
             **game.model_dump(),
-            "creator": PlayerRef.model_validate(players[game.creator_id]),
+            "organizer": PlayerRef.model_validate(players[game.organizer_id]),
             "opponent": PlayerRef.model_validate(players[game.opponent_id]),
             "score": [
                 PointsPublic(player_id=player, points=standing.points[player])
@@ -216,7 +216,7 @@ def to_detail(state: GameState, players: dict[int, Player], viewer_id: int) -> G
 
 
 def players_by_id(session: Session, games: Sequence[Game]) -> dict[int, Player]:
-    ids = {game.creator_id for game in games} | {game.opponent_id for game in games}
+    ids = {game.organizer_id for game in games} | {game.opponent_id for game in games}
     players = session.exec(select(Player).where(col(Player.id).in_(ids))).all()
     return {player.id: player for player in players if player.id is not None}
 
@@ -224,7 +224,7 @@ def players_by_id(session: Session, games: Sequence[Game]) -> dict[int, Player]:
 def my_game(session: Session, game_id: int, me: Player) -> Game:
     """The game if the acting player plays in it; otherwise 404, the same as no game at all."""
     game = session.get(Game, game_id)
-    if game is None or me.id not in (game.creator_id, game.opponent_id):
+    if game is None or me.id not in (game.organizer_id, game.opponent_id):
         raise HTTPException(status_code=404, detail="Game not found")
     return game
 
@@ -245,7 +245,7 @@ def create_game(body: GameCreate, me: CurrentPlayerDep, session: SessionDep) -> 
         raise HTTPException(status_code=422, detail="Cannot play against yourself")
     assert me.id is not None and opponent.id is not None  # loaded from the database
     game = Game(
-        creator_id=me.id,
+        organizer_id=me.id,
         opponent_id=opponent.id,
         **body.model_dump(exclude={"opponent_id"}),
     )
@@ -266,7 +266,7 @@ def create_game(body: GameCreate, me: CurrentPlayerDep, session: SessionDep) -> 
 def list_games(me: CurrentPlayerDep, session: SessionDep) -> list[GamePublic]:
     games = session.exec(
         select(Game)
-        .where(or_(col(Game.creator_id) == me.id, col(Game.opponent_id) == me.id))
+        .where(or_(col(Game.organizer_id) == me.id, col(Game.opponent_id) == me.id))
         .order_by(col(Game.id).desc())
     ).all()
     players = players_by_id(session, games)
@@ -303,8 +303,8 @@ def make_guess(game_id: int, body: Move, me: CurrentPlayerDep, session: SessionD
 @router.post("/{game_id}/actual")
 def enter_actual(game_id: int, body: Move, me: CurrentPlayerDep, session: SessionDep) -> GameDetail:
     game = my_game(session, game_id, me)
-    if me.id != game.creator_id:
-        raise HTTPException(status_code=403, detail="Only the creator enters the actual count")
+    if me.id != game.organizer_id:
+        raise HTTPException(status_code=403, detail="Only the organizer enters the actual count")
     finished = HTTPException(status_code=409, detail="Game is finished")
     waiting = HTTPException(status_code=409, detail="Waiting for guesses")
     if game.status == "finished":

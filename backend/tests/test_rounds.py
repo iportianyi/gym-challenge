@@ -48,7 +48,7 @@ def detail(client: TestClient, game_id: int, player: int = 1) -> dict[str, Any]:
 
 
 def play(client: TestClient, game_id: int, guess_1: int, guess_2: int, count: int) -> None:
-    """One whole round: player 1 (the creator) guesses, player 2 guesses, player 1 settles it."""
+    """One whole round: player 1 (the organizer) guesses, player 2 guesses, player 1 settles it."""
     assert guess(client, game_id, as_player(1), guess_1).status_code == 200
     assert guess(client, game_id, as_player(2), guess_2).status_code == 200
     assert actual(client, game_id, as_player(1), count).status_code == 200
@@ -65,7 +65,7 @@ def test_new_game(client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "id": 1,
-        "creator": {"id": 1, "name": "Клієнт"},
+        "organizer": {"id": 1, "name": "Клієнт"},
         "opponent": {"id": 2, "name": "Тренер"},
         "exercise": "Присідання",
         "base_reps": 10,
@@ -212,10 +212,10 @@ def test_both_guesses_are_shown_once_both_have_guessed(client: TestClient) -> No
     assert detail(client, game_id, 1)["current_round"]["guesses"] == both
 
 
-# Requirement: The creator enters the actual count after both guesses
+# Requirement: The organizer enters the actual count after both guesses
 
 
-def test_creator_settles_the_round(client: TestClient) -> None:
+def test_organizer_settles_the_round(client: TestClient) -> None:
     game_id = new_game(client)
     assert guess(client, game_id, as_player(1), 40).status_code == 200
     assert guess(client, game_id, as_player(2), 55).status_code == 200
@@ -235,7 +235,7 @@ def test_opponent_cannot_enter_the_actual_count(client: TestClient) -> None:
     response = actual(client, game_id, as_player(2), 47)
 
     assert response.status_code == 403
-    assert response.json() == {"detail": "Only the creator enters the actual count"}
+    assert response.json() == {"detail": "Only the organizer enters the actual count"}
     assert detail(client, game_id)["rounds"] == []
 
 

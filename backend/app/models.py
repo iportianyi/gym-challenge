@@ -25,7 +25,7 @@ class TelegramAccount(SQLModel, table=True):
 
 class Game(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    creator_id: int = Field(foreign_key="player.id")
+    organizer_id: int = Field(foreign_key="player.id")
     opponent_id: int = Field(foreign_key="player.id")
     # One penalty exercise per game; round and final penalties differ only in reps (docs/spec.md).
     exercise: str

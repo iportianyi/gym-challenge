@@ -101,3 +101,37 @@ def test_0003_downgrades_and_upgrades_again(
     # (players spec, "The default players and their games are gone").
     with open_client() as client:
         assert client.get("/api/me", headers=as_player(1)).status_code == 404
+
+
+def game_columns(database_url: str) -> list[str]:
+    with sqlite3.connect(sqlite_path(database_url)) as connection:
+        return [row[1] for row in connection.execute("PRAGMA table_info(game)")]
+
+
+def test_0004_renames_creator_to_organizer_and_keeps_games(database_url: str) -> None:
+    # rename-creator-to-organizer, design D1: a game and its round survive the rename both ways.
+    migrate(database_url, lambda config: command.upgrade(config, "0003"))
+    with sqlite3.connect(sqlite_path(database_url)) as connection:
+        connection.executemany(
+            "INSERT INTO player (id, name) VALUES (?, ?)", [(1, "Іван"), (2, "Олег")]
+        )
+        connection.execute(GAME_ROW)
+        connection.execute("INSERT INTO round (game_id, number, actual) VALUES (1, 1, 47)")
+
+    migrate(database_url, lambda config: command.upgrade(config, "0004"))
+
+    assert "organizer_id" in game_columns(database_url)
+    assert "creator_id" not in game_columns(database_url)
+    with sqlite3.connect(sqlite_path(database_url)) as connection:
+        games = connection.execute("SELECT id, organizer_id, opponent_id FROM game").fetchall()
+    assert games == [(1, 1, 2)]
+    assert [
+        (game_id, number, actual)
+        for _, game_id, number, actual in rounds_and_guesses(database_url)[0]
+    ] == [(1, 1, 47)]
+
+    migrate(database_url, lambda config: command.downgrade(config, "0003"))
+
+    assert "creator_id" in game_columns(database_url)
+    with sqlite3.connect(sqlite_path(database_url)) as connection:
+        assert connection.execute("SELECT id, creator_id FROM game").fetchall() == [(1, 1)]

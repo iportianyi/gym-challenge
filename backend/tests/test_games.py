@@ -23,7 +23,7 @@ def body(**changes: Any) -> dict[str, Any]:
     return {**VALID_BODY, **changes}
 
 
-# Requirement: Creator starts a game against a chosen player
+# Requirement: Organizer starts a game against a chosen player
 
 
 def test_client_starts_a_game_against_coach(client: TestClient) -> None:
@@ -32,7 +32,7 @@ def test_client_starts_a_game_against_coach(client: TestClient) -> None:
     assert response.status_code == 201
     assert response.json() == {
         "id": 1,
-        "creator": {"id": 1, "name": "Клієнт"},
+        "organizer": {"id": 1, "name": "Клієнт"},
         "opponent": {"id": 2, "name": "Тренер"},
         "exercise": "Присідання",
         "base_reps": 10,
@@ -48,7 +48,7 @@ def test_coach_starts_a_game_against_client(client: TestClient) -> None:
     response = client.post("/api/games", headers=as_player(2), json=body(opponent_id=1))
 
     assert response.status_code == 201
-    assert response.json()["creator"] == {"id": 2, "name": "Тренер"}
+    assert response.json()["organizer"] == {"id": 2, "name": "Тренер"}
     assert response.json()["opponent"] == {"id": 1, "name": "Клієнт"}
 
 

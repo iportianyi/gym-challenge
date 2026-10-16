@@ -48,7 +48,7 @@ class Standing:
 
 
 def settle(players: tuple[int, int], rounds: Sequence[Played], settings: Settings) -> Standing:
-    """Walk the settled rounds of a game between `players` (creator, opponent) in order."""
+    """Walk the settled rounds of a game between `players` (organizer, opponent) in order."""
     points = dict.fromkeys(players, 0)
     streaks = dict.fromkeys(players, 0)  # rounds lost in a row
     outcomes: list[Outcome] = []
