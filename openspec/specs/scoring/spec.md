@@ -78,8 +78,8 @@ round's `penalty` SHALL be `null`. Before that, `winner_id` and `final_penalty` 
 - **AND** `current_round` equals `null`
 
 #### Scenario: Full game through the API
-- **WHEN** players `1` and `2` play game `1` through the API: rounds 1–5 with guesses `40` and `60` and actual `45`,
-  each settled by player `1`, then a client sends `GET /api/games` with header `X-Player-Id: 2`
+- **WHEN** players `1` and `2` play game `1` through the API with their Telegram logins: rounds 1–5 with guesses `40`
+  and `60` and actual `45`, each settled by player `1`, then player `2` sends `GET /api/games`
 - **THEN** the listed game has `status` `"finished"`, `winner_id` `1` and `score`
   `[{"player_id": 1, "points": 5}, {"player_id": 2, "points": 0}]`
 

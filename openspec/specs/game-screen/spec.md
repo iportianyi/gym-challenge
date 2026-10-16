@@ -6,67 +6,17 @@ score, make a guess, enter the actual count, read each round's result and penalt
 
 ## Requirements
 
-### Requirement: A game has its own address
-The web app SHALL show the screen of game `{id}` at the address `/games/{id}`, with the level 2 heading
-`Гра: <exercise>`, after requesting `GET /api/games/{id}` with the chosen player's `X-Player-Id`. Each game in
-`Мої ігри` SHALL be a link to that address. Any other address outside `/games/new` SHALL show `Мої ігри` at `/`.
-In the scenarios below, game `1` is `Клієнт` (id `1`, creator) against `Тренер` (id `2`), exercise `Присідання`,
-base `10`, step `5`, final `30`.
-
-#### Scenario: Open from the list
-- **WHEN** player `Клієнт` is chosen, `GET /api/games` returns game `1`, and the person taps the link of that game in
-  `Мої ігри`
-- **THEN** the address is `/games/1`
-- **AND** the page shows the heading `Гра: Присідання`
-- **AND** the app has sent `GET /api/games/1` with header `X-Player-Id: 1`
-
-#### Scenario: Open the address directly
-- **WHEN** the app is loaded at `/games/1` with remembered player `1`
-- **THEN** the page shows the heading `Гра: Присідання`
-- **AND** the page does not show the heading `Мої ігри`
-
-#### Scenario: Address opened before choosing a player
-- **WHEN** the app is loaded at `/games/1` with no remembered player and the person taps `Я — Клієнт`
-- **THEN** the page shows the heading `Хто ти?` before the tap
-- **AND** the page shows the heading `Гра: Присідання` after it, at the address `/games/1`
-
-#### Scenario: Unknown address
-- **WHEN** the app is loaded at `/nope` with remembered player `1`
-- **THEN** the page shows the heading `Мої ігри`
-- **AND** the address is `/`
-
-### Requirement: The game screen leads back to my games
-The game screen SHALL have a link `Мої ігри` to `/`. When `GET /api/games/{id}` answers `404`, the screen SHALL show
-`Гру не знайдено` and the same link. When it answers `401`, the app SHALL forget the remembered player and show the
-picker, as the list does.
-
-#### Scenario: Back to the list
-- **WHEN** on the screen of game `1` the person taps the link `Мої ігри`
-- **THEN** the page shows the heading `Мої ігри`
-- **AND** the address is `/`
-
-#### Scenario: No such game
-- **WHEN** the app is loaded at `/games/99` with remembered player `1` and `GET /api/games/99` answers `404` with
-  `{"detail": "Game not found"}`
-- **THEN** the page shows the text `Гру не знайдено`
-- **AND** the page shows the link `Мої ігри`
-
-#### Scenario: Remembered player rejected on the game screen
-- **WHEN** the app is loaded at `/games/1` with remembered player `7` and `GET /api/games/1` answers `401`
-- **THEN** the page shows the heading `Хто ти?`
-- **AND** the remembered player is cleared
-
 ### Requirement: The scoreboard is shown from the viewer's side
 The game screen SHALL show the score in a region named `Рахунок` whose text reads `Ти <my points> : <their points>
 <other player's name>`, whatever the viewer's role in the game.
 
 #### Scenario: Opponent looks at the score
 - **WHEN** in game `1` the score is `[{"player_id": 1, "points": 1}, {"player_id": 2, "points": 0}]` and the app is
-  loaded at `/games/1` with remembered player `2`
+  opened as player `2` at `/games/1`
 - **THEN** the text of the region `Рахунок`, with whitespace collapsed, equals `Ти 0 : 1 Клієнт`
 
 #### Scenario: Creator looks at the score
-- **WHEN** the same game is loaded with remembered player `1`
+- **WHEN** the same game is opened as player `1`
 - **THEN** the text of the region `Рахунок`, with whitespace collapsed, equals `Ти 1 : 0 Тренер`
 
 ### Requirement: A guess is sent only after a confirm step
@@ -80,8 +30,8 @@ buttons `Надіслати` and `Змінити`, and send nothing. `Надіс
   taps `Далі`
 - **THEN** the page shows the text `Надіслати здогадку 47? Змінити не вийде.`
 - **AND** no `POST /api/games/1/guesses` has been sent
-- **AND** after tapping `Надіслати` the app sends `POST /api/games/1/guesses` with header `X-Player-Id: 1` and body
-  `{"value": 47}`
+- **AND** after tapping `Надіслати` the app sends `POST /api/games/1/guesses` with header `Authorization: tma <t1>`
+  and body `{"value": 47}`
 
 #### Scenario: Change before sending
 - **WHEN** player `1` has typed `47`, tapped `Далі`, and taps `Змінити`
@@ -133,8 +83,8 @@ The creator's field `Реальна кількість` SHALL work like the gues
 - **WHEN** in game `1` both have guessed (`40`, `55`), player `1` types `47` into `Реальна кількість` and taps
   `Далі`
 - **THEN** the page shows the text `Реальна кількість 47? Це закриє раунд.`
-- **AND** after tapping `Надіслати` the app sends `POST /api/games/1/actual` with header `X-Player-Id: 1` and body
-  `{"value": 47}`
+- **AND** after tapping `Надіслати` the app sends `POST /api/games/1/actual` with header `Authorization: tma <t1>`
+  and body `{"value": 47}`
 
 ### Requirement: The round just settled is shown as a result card
 While the game has a settled round and nobody has guessed in the next one, or the game is finished, the screen
@@ -259,3 +209,54 @@ without the mark.
 - **WHEN** round `1` was settled as (`40`, `55`, `47`) and the screen is opened by player `2`
 - **THEN** the card shows the text `Твоє покарання: Присідання × 10`
 - **AND** the page does not show the text `×2 точно`
+
+### Requirement: Each game has its own address
+The web app SHALL show the screen of game `{id}` at the address `/games/{id}`, with the level 2 heading
+`Гра: <exercise>`, after requesting `GET /api/games/{id}` with the player's Telegram login. Each game in
+`Мої ігри` SHALL be a link to that address. Any other address outside `/games/new` SHALL show `Мої ігри` at `/`.
+In the scenarios below, game `1` is `Клієнт` (id `1`, creator) against `Тренер` (id `2`), exercise `Присідання`,
+base `10`, step `5`, final `30`.
+
+#### Scenario: Open from the list
+- **WHEN** the app is opened as player `1`, `GET /api/games` returns game `1`, and the person taps the link of that
+  game in `Мої ігри`
+- **THEN** the address is `/games/1`
+- **AND** the page shows the heading `Гра: Присідання`
+- **AND** the app has sent `GET /api/games/1` with header `Authorization: tma <t1>`
+
+#### Scenario: Open the address directly
+- **WHEN** the app is opened as player `1` at `/games/1`
+- **THEN** the page shows the heading `Гра: Присідання`
+- **AND** the page does not show the heading `Мої ігри`
+
+#### Scenario: Address opened at the first login
+- **WHEN** the app is loaded at `/games/1` with `t1`, `GET /api/me` answers `404`, and the person taps `Почати` and
+  the server answers `201` with `{"id": 1, "name": "Клієнт"}`
+- **THEN** the page shows the heading `Як тебе звати?` before the tap
+- **AND** the page shows the heading `Гра: Присідання` after it, at the address `/games/1`
+
+#### Scenario: Unknown address
+- **WHEN** the app is opened as player `1` at `/nope`
+- **THEN** the page shows the heading `Мої ігри`
+- **AND** the address is `/`
+
+### Requirement: A game that cannot be shown leads back to my games or to Telegram
+The game screen SHALL have a link `Мої ігри` to `/`. When `GET /api/games/{id}` answers `404`, the screen SHALL show
+`Гру не знайдено` and the same link. When it answers `401`, the app SHALL show the refused-login message, as every
+screen does (capability `telegram-auth`).
+
+#### Scenario: Back to the list
+- **WHEN** on the screen of game `1` the person taps the link `Мої ігри`
+- **THEN** the page shows the heading `Мої ігри`
+- **AND** the address is `/`
+
+#### Scenario: No such game
+- **WHEN** the app is opened as player `1` at `/games/99` and `GET /api/games/99` answers `404` with
+  `{"detail": "Game not found"}`
+- **THEN** the page shows the text `Гру не знайдено`
+- **AND** the page shows the link `Мої ігри`
+
+#### Scenario: Login refused on the game screen
+- **WHEN** the app is opened as player `1` at `/games/1` and `GET /api/games/1` answers `401`
+- **THEN** the page shows the text `Вхід застарів. Закрий і знову відкрий застосунок у Telegram.`
+- **AND** the page does not show the heading `Гра: Присідання`
