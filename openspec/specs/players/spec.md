@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Defines who plays gym-challenge: a player appears at their first Telegram login under a name they choose, is kept
-apart from the Telegram account they log in with, and can see the other players to choose an opponent.
+Defines who plays gym-challenge: a player appears at their first Telegram login under a name they choose and is kept
+apart from the Telegram account they log in with. Players are not listed to each other; they meet through invite links
+and shared games.
 
 ## Requirements
 
