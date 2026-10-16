@@ -21,7 +21,8 @@ services:
     profiles: [tunnel]
     image: ngrok/ngrok:3.39.11-alpine
     depends_on: [app]
-    command: http --url=${NGROK_URL:-} app:8000
+    # --log stdout: without a terminal ngrok logs nothing, so connection errors would stay invisible.
+    command: http --url=${NGROK_URL:-} --log stdout app:8000
     environment:
       NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN:-}
     ports:
