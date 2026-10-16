@@ -183,4 +183,16 @@ gets «already used». The hybrid run (Telegram + dev link) is not possible by d
 
 ## Implementation notes
 
-<!-- Filled during apply: differences between the decisions above and the code. -->
+Differences between the decisions above and the code, found during apply. Behaviour matches the specs in every case.
+
+- D1: batch mode alone fails on a database with rounds: rebuilding `game` drops it while `round` rows point to it,
+  and the app's connections have `PRAGMA foreign_keys=ON` (`DROP TABLE game` → `FOREIGN KEY constraint failed`).
+  `PRAGMA defer_foreign_keys` does not help (the deferred counter stays raised after the copy is renamed). So
+  migrations now run as SQLite's ALTER procedure prescribes: `app.db.migrate()` switches foreign keys off outside
+  the transaction, runs the Alembic command, fails if `PRAGMA foreign_key_check` finds anything, and switches them
+  on again. The tests' `migrate()` helper uses the same function. Covered by
+  `test_games_from_before_invitations_keep_their_opponent` and `test_0005_downgrades_and_upgrades_again`.
+- D3: `GET /api/opponents` and the known-opponent check collect the other players in Python from the caller's
+  shared games, newest first, instead of one grouped SQL query: fewer moving parts for two players' worth of data.
+- D4: the race is tested deterministically: a SQLAlchemy `before_cursor_execute` hook lets another connection join
+  right before the request's guarded `UPDATE` (`test_join_lost_to_a_request_in_between`).

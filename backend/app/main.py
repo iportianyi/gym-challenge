@@ -43,9 +43,14 @@ def api_fallback(api: APIRouter) -> Callable[[Request, str], None]:
 
 
 def create_app(
-    frontend_dir: Path | None = None, *, database_url: str, bot_token: str | None
+    frontend_dir: Path | None = None,
+    *,
+    database_url: str,
+    bot_token: str | None,
+    bot_username: str | None,
 ) -> FastAPI:
-    """`bot_token` checks Telegram logins (telegram-auth); without one the app refuses to start."""
+    """`bot_token` checks Telegram logins (telegram-auth), `bot_username` names the bot in invite
+    links (game-invites); without either the app refuses to start."""
     engine = create_db_engine(database_url)
 
     @asynccontextmanager
@@ -55,6 +60,10 @@ def create_app(
             raise RuntimeError(
                 "TELEGRAM_BOT_TOKEN is not set: the bot token is needed to check logins"
             )
+        if not bot_username:
+            raise RuntimeError(
+                "TELEGRAM_BOT_USERNAME is not set: the bot username is needed for invite links"
+            )
         # One process (`fastapi run`), so migrating at startup cannot race another worker.
         run_migrations(engine)
         yield
@@ -63,6 +72,7 @@ def create_app(
     app = FastAPI(title="gym-challenge", lifespan=lifespan)
     app.state.engine = engine
     app.state.bot_token = bot_token
+    app.state.bot_username = bot_username
 
     api = APIRouter(prefix="/api")
     api.include_router(health.router)
@@ -96,4 +106,5 @@ app = create_app(
     frontend_dir_from_env(),
     database_url=database_url_from_env(),
     bot_token=os.environ.get("TELEGRAM_BOT_TOKEN"),
+    bot_username=os.environ.get("TELEGRAM_BOT_USERNAME"),
 )

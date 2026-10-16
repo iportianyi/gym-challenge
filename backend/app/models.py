@@ -26,13 +26,17 @@ class TelegramAccount(SQLModel, table=True):
 class Game(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     organizer_id: int = Field(foreign_key="player.id")
-    opponent_id: int = Field(foreign_key="player.id")
+    # None while the game waits for someone to open its invite link (game-invites, design D1).
+    opponent_id: int | None = Field(default=None, foreign_key="player.id")
+    # The `startapp` token of the invite link; kept after the join, so a second opener is told the
+    # link is used. None for a game started with a known opponent.
+    invite_token: str | None = Field(default=None, max_length=32, unique=True)
     # One penalty exercise per game; round and final penalties differ only in reps (docs/spec.md).
     exercise: str
     base_reps: int
     step_reps: int
     final_reps: int
-    status: str = "active"
+    status: str = "active"  # "waiting" | "active" | "finished"
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

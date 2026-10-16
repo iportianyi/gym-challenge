@@ -1,6 +1,6 @@
 """API scenarios from openspec/specs/rounds/spec.md, plus "Full game through the API" from
-specs/scoring/spec.md, as changed by the telegram-auth deltas (players act through Telegram
-logins)."""
+specs/scoring/spec.md. "Player 1 has created game 1 against player 2" is an invite of player 1
+that player 2 joined (game-invites rounds delta)."""
 
 from collections.abc import Callable
 from typing import Any
@@ -9,17 +9,9 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import as_player, register
+from tests.conftest import as_player, register, share_game
 
 pytestmark = pytest.mark.usefixtures("players")
-
-NEW_GAME: dict[str, Any] = {
-    "opponent_id": 2,
-    "exercise": "Присідання",
-    "base_reps": 10,
-    "step_reps": 5,
-    "final_reps": 30,
-}
 
 NO_GUESSES = [
     {"player_id": 1, "guessed": False, "value": None},
@@ -28,9 +20,7 @@ NO_GUESSES = [
 
 
 def new_game(client: TestClient) -> int:
-    response = client.post("/api/games", headers=as_player(1), json=NEW_GAME)
-    assert response.status_code == 201
-    return response.json()["id"]
+    return share_game(client)
 
 
 def guess(client: TestClient, game_id: int, headers: dict[str, str], value: Any) -> httpx.Response:
@@ -77,6 +67,7 @@ def test_new_game(client: TestClient) -> None:
         "final_penalty": None,
         "rounds": [],
         "current_round": {"number": 1, "guesses": NO_GUESSES},
+        "invite_url": None,
     }
 
 
@@ -97,6 +88,7 @@ def test_one_settled_round(client: TestClient) -> None:
     ]
     assert game["current_round"] == {"number": 2, "guesses": NO_GUESSES}
     assert game["score"] == [{"player_id": 1, "points": 1}, {"player_id": 2, "points": 0}]
+    assert game["invite_url"] is None
 
 
 # Requirement: Only the game's players can see or play it

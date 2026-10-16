@@ -2,31 +2,31 @@
 
 ## 1. Failing scenario tests
 
-- [ ] 1.1 Backend: in `backend/tests/conftest.py` pass `bot_username="gym_test_bot"` to `create_app` and add the
+- [x] 1.1 Backend: in `backend/tests/conftest.py` pass `bot_username="gym_test_bot"` to `create_app` and add the
   `invite` / `share_game` helpers (design D9); write one test per API scenario of the `invites`, `games`, `players`,
   `rounds` and `telegram-auth` deltas (new `backend/tests/test_invites.py`, the rest in the existing files), including
   the upgrade from a database at revision `0004`; move existing tests that start a game between players who never
   played to `share_game`, keeping their assertions; delete the `GET /api/players` list tests (the requirement is
   REMOVED); run `docker compose --profile check run --rm backend-check pytest` and quote the failing lines
-- [ ] 1.2 Frontend: add `t2s` (`t2` with `start_param=Abc_123-xyz`) and an `answerJoin` helper to
+- [x] 1.2 Frontend: add `t2s` (`t2` with `start_param=Abc_123-xyz`) and an `answerJoin` helper to
   `frontend/src/test/telegram.ts`; write one test per web-app scenario of the `invites` and `games` deltas, replacing
   the `GET /api/players` mocks with `GET /api/opponents`; run
   `docker compose --profile check run --rm frontend-check vitest run` and quote the failing lines
 
 ## 2. Backend
 
-- [ ] 2.1 Models: `Game.opponent_id` nullable, `Game.invite_token` unique nullable; migration `0005_game_invites`
+- [x] 2.1 Models: `Game.opponent_id` nullable, `Game.invite_token` unique nullable; migration `0005_game_invites`
   with `batch_alter_table` and a downgrade that deletes waiting games (design D1); verify the upgrade-from-`0004` test
   passes and `alembic downgrade 0004` then `upgrade head` runs on a test database
-- [ ] 2.2 `create_app(bot_token=…, bot_username=…)`, module-level app from `TELEGRAM_BOT_USERNAME`, startup check in
+- [x] 2.2 `create_app(bot_token=…, bot_username=…)`, module-level app from `TELEGRAM_BOT_USERNAME`, startup check in
   the lifespan (design D6); verify the "Username missing" and "Token missing" tests pass
-- [ ] 2.3 `POST /api/games` without `opponent_id` creates a waiting game with a token; with `opponent_id` only a
+- [x] 2.3 `POST /api/games` without `opponent_id` creates a waiting game with a token; with `opponent_id` only a
   known opponent (design D2, D3); `GET /api/opponents` replaces `GET /api/players` in `app/api/players.py`; verify the
   `games` and `players` API tests and the invites "Create an invite game" tests pass
-- [ ] 2.4 Waiting games in responses and moves: nullable `opponent`, `score` `[]`, `current_round` `null`,
+- [x] 2.4 Waiting games in responses and moves: nullable `opponent`, `score` `[]`, `current_round` `null`,
   `invite_url` for the organizer only, `409 Waiting for opponent` on moves (design D2, D5); verify the invites
   "Only the organizer sees the invite link" and "Nothing is played until the opponent joins" tests pass
-- [ ] 2.5 `POST /api/games/join` with the guarded update and round `1` in one transaction (design D4); add a test
+- [x] 2.5 `POST /api/games/join` with the guarded update and round `1` in one transaction (design D4); add a test
   that two joins of the same token by players `2` and `3` leave exactly one opponent; verify all of pytest passes and
   `ruff`, `ty` are clean through `backend-check`
 

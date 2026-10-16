@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -16,6 +17,9 @@ INDEX_HTML = '<!doctype html>\n<html lang="uk"><body><div id="root"></div></body
 
 # The bot token the test server runs with (telegram-auth spec); not a real bot.
 BOT_TOKEN = "123456:TEST-TOKEN"
+
+# The bot username invite links name (invites spec); not a real bot.
+BOT_USERNAME = "gym_test_bot"
 
 # Test players by id: name and Telegram user id (telegram-auth spec, "As player N").
 PLAYERS = {1: ("Клієнт", 1001), 2: ("Тренер", 1002), 3: ("Гість", 1003)}
@@ -64,6 +68,37 @@ def register(client: TestClient, *numbers: int) -> None:
         assert response.json() == {"id": number, "name": name}
 
 
+# The settings of the game in the scenarios: Присідання, base 10, step 5, final 30.
+SETTINGS: dict[str, Any] = {
+    "exercise": "Присідання",
+    "base_reps": 10,
+    "step_reps": 5,
+    "final_reps": 30,
+}
+
+
+def invite(client: TestClient, organizer: int = 1, **changes: Any) -> tuple[int, str]:
+    """An invite game of player `organizer` (invites spec): its id and the token of its link."""
+    response = client.post("/api/games", headers=as_player(organizer), json={**SETTINGS, **changes})
+    assert response.status_code == 201, response.text
+    game_id = response.json()["id"]
+    game = client.get(f"/api/games/{game_id}", headers=as_player(organizer)).json()
+    return game_id, game["invite_url"].partition("startapp=")[2]
+
+
+def join(client: TestClient, number: int, token: Any) -> httpx.Response:
+    """Player `number` opens an invite link: `POST /api/games/join`."""
+    return client.post("/api/games/join", headers=as_player(number), json={"token": token})
+
+
+def share_game(client: TestClient, organizer: int = 1, opponent: int = 2, **changes: Any) -> int:
+    """A game the two players share: `organizer` invites, `opponent` joins (design D9)."""
+    game_id, token = invite(client, organizer, **changes)
+    response = join(client, opponent, token)
+    assert response.status_code == 200, response.text
+    return game_id
+
+
 @pytest.fixture
 def frontend_dir(tmp_path: Path) -> Path:
     """A stand-in for the built frontend: index.html and one asset, no real build needed."""
@@ -91,7 +126,12 @@ def open_client(frontend_dir: Path, database_url: str) -> Callable[[], TestClien
 
     def make() -> TestClient:
         return TestClient(
-            create_app(frontend_dir=frontend_dir, database_url=database_url, bot_token=BOT_TOKEN)
+            create_app(
+                frontend_dir=frontend_dir,
+                database_url=database_url,
+                bot_token=BOT_TOKEN,
+                bot_username=BOT_USERNAME,
+            )
         )
 
     return make

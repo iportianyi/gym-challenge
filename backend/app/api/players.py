@@ -3,11 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, StringConstraints
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import SQLModel, col, select
+from sqlmodel import SQLModel, col, or_, select
 
 from app.auth import CurrentPlayerDep, TelegramUserDep
 from app.db import SessionDep
-from app.models import Player, TelegramAccount
+from app.models import Game, Player, TelegramAccount
 
 router = APIRouter(tags=["players"])
 
@@ -55,11 +55,29 @@ def register_me(body: Registration, user: TelegramUserDep, session: SessionDep) 
     return PlayerPublic.model_validate(player)
 
 
-# Temporary (decision 5): the opponent is chosen from everyone until invitations replace this
-# with known opponents.
-@router.get("/players")
-def list_other_players(me: CurrentPlayerDep, session: SessionDep) -> list[PlayerPublic]:
-    players = session.exec(
-        select(Player).where(col(Player.id) != me.id).order_by(col(Player.id))
+def known_opponents(session: SessionDep, me: Player) -> list[Player]:
+    """Players who share a game with `me` (as organizer and opponent), the most recent first.
+
+    A waiting game has no opponent yet, so it makes nobody known (game-invites, design D3).
+    """
+    games = session.exec(
+        select(Game)
+        .where(
+            col(Game.opponent_id).is_not(None),
+            or_(col(Game.organizer_id) == me.id, col(Game.opponent_id) == me.id),
+        )
+        .order_by(col(Game.id).desc())
     ).all()
-    return [PlayerPublic.model_validate(player) for player in players]
+    order: list[int] = []
+    for game in games:
+        other = game.opponent_id if game.organizer_id == me.id else game.organizer_id
+        if other is not None and other not in order:
+            order.append(other)
+    players = session.exec(select(Player).where(col(Player.id).in_(order))).all()
+    by_id = {player.id: player for player in players}
+    return [by_id[player_id] for player_id in order]
+
+
+@router.get("/opponents")
+def list_opponents(me: CurrentPlayerDep, session: SessionDep) -> list[PlayerPublic]:
+    return [PlayerPublic.model_validate(player) for player in known_opponents(session, me)]

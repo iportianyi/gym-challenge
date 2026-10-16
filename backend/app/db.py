@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -31,13 +31,34 @@ def create_db_engine(database_url: str) -> Engine:
     return engine
 
 
-def run_migrations(engine: Engine) -> None:
-    """`alembic upgrade head` on the app's own engine."""
+def migrate(engine: Engine, step: Callable[[Config], None]) -> None:
+    """Runs an Alembic command (`step`) on `engine` in one transaction, with foreign keys off.
+
+    Batch mode rebuilds a table (copy, drop, rename); dropping a table that other rows point to
+    fails while foreign keys are on. SQLite's procedure for such changes: switch them off outside
+    the transaction, check them before committing (game-invites, design D1).
+    """
     config = Config()
     config.set_main_option("script_location", str(MIGRATIONS_DIR))
-    with engine.begin() as connection:
-        config.attributes["connection"] = connection
-        command.upgrade(config, "head")
+    with engine.connect() as connection:
+        # Outside a transaction, or SQLite ignores it; pysqlite starts none for a PRAGMA.
+        connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+        connection.commit()
+        try:
+            with connection.begin():
+                config.attributes["connection"] = connection
+                step(config)
+                broken = connection.exec_driver_sql("PRAGMA foreign_key_check").fetchall()
+                if broken:
+                    raise RuntimeError(f"Migration left broken foreign keys: {broken}")
+        finally:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+            connection.commit()
+
+
+def run_migrations(engine: Engine) -> None:
+    """`alembic upgrade head` on the app's own engine."""
+    migrate(engine, lambda config: command.upgrade(config, "head"))
 
 
 def get_session(request: Request) -> Iterator[Session]:

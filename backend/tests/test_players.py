@@ -1,4 +1,4 @@
-"""API scenarios from openspec/changes/telegram-auth/specs/players/spec.md."""
+"""API scenarios from openspec/specs/players/spec.md, as changed by the game-invites delta."""
 
 import sqlite3
 from collections.abc import Callable
@@ -6,7 +6,7 @@ from collections.abc import Callable
 from alembic import command
 from fastapi.testclient import TestClient
 
-from tests.conftest import as_player, login, register
+from tests.conftest import as_player, invite, login, register
 from tests.test_migrations import migrate, sqlite_path
 
 NOT_REGISTERED = {"detail": "Not registered"}
@@ -95,29 +95,31 @@ def test_unregistered_user_lists_games(client: TestClient) -> None:
 
 
 def test_unregistered_user_lists_players(client: TestClient) -> None:
-    response = client.get("/api/players", headers=login(1009))
+    response = client.get("/api/opponents", headers=login(1009))
 
     assert response.status_code == 403
 
 
-# Requirement: Other players are listed for choosing an opponent
-
-
-def test_three_players(client: TestClient) -> None:
-    register(client, 1, 2, 3)
-
-    response = client.get("/api/players", headers=as_player(1))
-
-    assert response.status_code == 200
-    assert response.json() == [{"id": 2, "name": "Тренер"}, {"id": 3, "name": "Гість"}]
-
-
-def test_alone_in_the_app(client: TestClient) -> None:
+def test_unregistered_user_opens_an_invite(client: TestClient) -> None:
     register(client, 1)
+    game_id, token = invite(client)
+
+    response = client.post("/api/games/join", headers=login(1009), json={"token": token})
+
+    assert response.status_code == 403
+    assert response.json() == NOT_REGISTERED
+    assert client.get(f"/api/games/{game_id}", headers=as_player(1)).json()["status"] == "waiting"
+
+
+# Requirement: Players are not listed to each other
+
+
+def test_the_old_list_is_gone(client: TestClient) -> None:
+    register(client, 1, 2)
 
     response = client.get("/api/players", headers=as_player(1))
 
-    assert response.json() == []
+    assert response.status_code == 404
 
 
 # Requirement: The default players and their games are gone
@@ -147,7 +149,7 @@ def test_upgrade_from_the_mvp_database(
         assert response.status_code == 201
         me = login(1001)
         assert client.get("/api/games", headers=me).json() == []
-        assert client.get("/api/players", headers=me).json() == []
+        assert client.get("/api/opponents", headers=me).json() == []
 
 
 # Requirement: Players survive a restart

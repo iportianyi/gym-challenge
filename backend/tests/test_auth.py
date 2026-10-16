@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.auth import TelegramUser, verify_init_data
 from app.main import create_app
-from tests.conftest import BOT_TOKEN, login, sign_fields, sign_init_data
+from tests.conftest import BOT_TOKEN, BOT_USERNAME, login, sign_fields, sign_init_data
 
 INVALID_LOGIN = {"detail": "Invalid Telegram login"}
 
@@ -115,9 +115,27 @@ def test_auth_date_is_not_a_number(client: TestClient) -> None:
 
 @pytest.mark.parametrize("token", [None, ""])
 def test_token_missing(frontend_dir: Path, database_url: str, token: str | None) -> None:
-    app = create_app(frontend_dir=frontend_dir, database_url=database_url, bot_token=token)
+    app = create_app(
+        frontend_dir=frontend_dir,
+        database_url=database_url,
+        bot_token=token,
+        bot_username=BOT_USERNAME,
+    )
 
     with pytest.raises(RuntimeError, match="TELEGRAM_BOT_TOKEN"), TestClient(app):
+        pass
+
+
+@pytest.mark.parametrize("username", [None, ""])
+def test_username_missing(frontend_dir: Path, database_url: str, username: str | None) -> None:
+    app = create_app(
+        frontend_dir=frontend_dir,
+        database_url=database_url,
+        bot_token=BOT_TOKEN,
+        bot_username=username,
+    )
+
+    with pytest.raises(RuntimeError, match="TELEGRAM_BOT_USERNAME"), TestClient(app):
         pass
 
 
