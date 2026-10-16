@@ -24,7 +24,7 @@ current round has `number` and `guesses`. Every per-player list has one entry pe
 - **WHEN** in game `1` (settings as above) player `1` guesses `40`, player `2` guesses `55`, player `1` enters the
   actual count `47`, and a client sends `GET /api/games/1` with header `X-Player-Id: 1`
 - **THEN** the body's `rounds` equals
-  `[{"number": 1, "guesses": [{"player_id": 1, "value": 40}, {"player_id": 2, "value": 55}], "actual": 47, "winner_id": 1, "penalty": {"player_id": 2, "reps": 10}}]`
+  `[{"number": 1, "guesses": [{"player_id": 1, "value": 40}, {"player_id": 2, "value": 55}], "actual": 47, "winner_id": 1, "penalty": {"player_id": 2, "reps": 10, "doubled": false}}]`
 - **AND** the body's `current_round` equals
   `{"number": 2, "guesses": [{"player_id": 1, "guessed": false, "value": null}, {"player_id": 2, "guessed": false, "value": null}]}`
 - **AND** the body's `score` equals `[{"player_id": 1, "points": 1}, {"player_id": 2, "points": 0}]`
