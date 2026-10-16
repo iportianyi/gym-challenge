@@ -194,5 +194,9 @@ Differences between the decisions above and the code, found during apply. Behavi
   `test_games_from_before_invitations_keep_their_opponent` and `test_0005_downgrades_and_upgrades_again`.
 - D3: `GET /api/opponents` and the known-opponent check collect the other players in Python from the caller's
   shared games, newest first, instead of one grouped SQL query: fewer moving parts for two players' worth of data.
+- D5: `GameState.players` asserts an opponent instead of returning `()`: every caller handles a waiting game first
+  (`to_public`, `to_detail`, the move endpoints), so an empty pair would only hide a missed branch (review finding 1).
+- D8: the share link has `rel="noopener noreferrer"`, not only `noopener`: Telegram does not need the referrer
+  (review finding 2).
 - D4: the race is tested deterministically: a SQLAlchemy `before_cursor_execute` hook lets another connection join
   right before the request's guarded `UPDATE` (`test_join_lost_to_a_request_in_between`).

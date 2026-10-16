@@ -76,11 +76,11 @@
   the opener sees, the waiting game, how invites are checked) and close «тимчасовий список гравців»; update the
   `players` Purpose in `openspec/specs/players/spec.md` (players no longer see each other in a list); commit as
   `docs(spec)`; verify with `git show --stat HEAD` that only these files changed
-- [ ] 6.2 Harness, separate commit after showing the diff and getting the human's «так»: the dev-link command with
+- [x] 6.2 Harness, separate commit after showing the diff and getting the human's «так»: the dev-link command with
   `--start` in `CLAUDE.md` «Команди»; verify `git show --stat HEAD` lists only `CLAUDE.md`
 
 ## 7. Review and check
 
-- [ ] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+- [x] 7.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
   `docs/reviews/game-invites.md`
 - [ ] 7.2 Run the project check command (`make check`) and quote its summary line
