@@ -17,9 +17,13 @@ Backend and frontend ship in one image (FastAPI serves the built frontend), so t
 
 ### D1. Migration `0004` renames the column in place
 
-`op.batch_alter_table("game")` with `alter_column("creator_id", new_column_name="organizer_id")`. Batch mode
-recreates the table on SQLite, keeping rows, the foreign key to `player.id` and the `NOT NULL`. Downgrade renames it
-back. Data survives both ways, which a test asserts.
+`ALTER TABLE game RENAME COLUMN creator_id TO organizer_id` (SQLite 3.25+): the column is renamed in place, keeping
+rows, the foreign key to `player.id` and the `NOT NULL`. Downgrade renames it back. Data survives both ways, which a
+test asserts.
+
+Changed during apply: the plan was `op.batch_alter_table` (as in `0003`). Its migration test failed with
+`FOREIGN KEY constraint failed`: batch mode copies `game` and drops the old table, and with `foreign_keys=ON` the drop
+fails while rounds point to a game. In `0003` this did not show because the rows were deleted first.
 
 Alternative: keep the column name and map it in SQLModel (`sa_column=Column("creator_id", …)`). Rejected: the
 database would keep the old word, and the next reader of a SQL query would meet both names.
