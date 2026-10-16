@@ -21,6 +21,8 @@ export const PATTERNS = [
   ["GitHub token", /\b(?:ghp|gho|ghs|ghu|ghr)_[A-Za-z0-9]{36}\b|\bgithub_pat_[A-Za-z0-9_]{60,}\b/],
   ["AWS access key id", /\bAKIA[0-9A-Z]{16}\b/],
   ["Anthropic API key", /\bsk-ant-[A-Za-z0-9_-]{32,}\b/],
+  // Telegram bot token: <bot id>:<35 chars>. Lookarounds instead of \b: the token may end with "-".
+  ["Telegram bot token", /(?<![\w-])\d{8,10}:[A-Za-z0-9_-]{35}(?![\w-])/],
 ];
 
 const ZERO = /^0+$/;
@@ -118,6 +120,14 @@ function selfTest() {
     const remoteHead = git(["rev-parse", "main"], remote).trim();
     const localHead = git(["rev-parse", "HEAD"], work).trim();
     check("remote did not receive the leaking commit", remoteHead !== localHead);
+
+    // Telegram: checked on scan() directly, the push sequence above already ends blocked.
+    const fakeBotToken = ["1234567890", ":", "AAF", "x".repeat(32)].join("");
+    check("Telegram-shaped bot token is detected", scan([{ line: `TELEGRAM_BOT_TOKEN=${fakeBotToken}` }]).length === 1);
+    check(
+      "test and local tokens are not secrets",
+      scan([{ line: '"123456:TEST-TOKEN"' }, { line: "local-dev-token" }]).length === 0,
+    );
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
