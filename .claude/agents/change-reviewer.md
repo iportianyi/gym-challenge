@@ -30,12 +30,11 @@ The project rules (`CLAUDE.md`, `.claude/rules/`) reach you with your context at
 Give each a verdict: PASS, FAIL or NOT VISIBLE (the packet does not show enough to judge).
 
 - **A. Scope** — only what design and tasks call for changed. No edits to the harness (`.claude/`, hooks,
-  `.mcp.json`, `.agent-log/`) unless a task says the human approved it.
+  `.mcp.json`) unless a task says the human approved it.
 - **B. Scenario coverage** — every `#### Scenario` in the change's specs has a test that asserts its concrete
   values (status codes, exact texts, bodies). Name any scenario without one, or a test that asserts less than its
   scenario says.
-- **C. Test integrity** — no test deleted, skipped or weakened to get green. A commit with only the failing tests
-  comes before the implementation commit, and the packet shows it failing.
+- **C. Test integrity** — no test deleted, skipped or weakened to get green.
 - **D. Design adherence** — the code follows design.md; every deviation is recorded in design.md (for example
   under "Implementation notes"), not made silently.
 - **E. Project rules** — the rules in `CLAUDE.md` and `openspec/config.yaml`: language of UI/code/commits,
