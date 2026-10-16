@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Lets the two players of a game play it round by round through the API: each makes one hidden guess, the creator
+Lets the two players of a game play it round by round through the API: each makes one hidden guess, the organizer
 enters the actual count, and every settled round is kept, so the game can run over several gym visits.
 
 ## Requirements
