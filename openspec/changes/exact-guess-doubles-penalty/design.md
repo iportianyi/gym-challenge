@@ -36,6 +36,8 @@ value pass silently as "not doubled".
 
 `penaltyText()` appends ` (×2 точно)` when `penalty.doubled` is true. All three places use this one function, so
 the card, the history and the final penalty stay identical. Wording is the human's choice: `×2 точно`.
+Between `×2` and `точно` is a no-break space (U+00A0): the browser check at 375 px wrapped the mark in the
+result card. The specs' texts compare with whitespace collapsed, as the existing UI tests do.
 
 ## Risks / Trade-offs
 
