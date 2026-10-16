@@ -14,7 +14,7 @@ const entry = (playerId: number, value: Entry) => ({
 function game(overrides: Partial<GameDetail> = {}): GameDetail {
   return {
     id: 1,
-    creator: { id: 1, name: "Клієнт" },
+    organizer: { id: 1, name: "Клієнт" },
     opponent: { id: 2, name: "Тренер" },
     exercise: "Присідання",
     base_reps: 10,
@@ -33,8 +33,8 @@ function game(overrides: Partial<GameDetail> = {}): GameDetail {
   };
 }
 
-const inRound = (creator: Entry, opponent: Entry) =>
-  game({ current_round: { number: 1, guesses: [entry(1, creator), entry(2, opponent)] } });
+const inRound = (organizer: Entry, opponent: Entry) =>
+  game({ current_round: { number: 1, guesses: [entry(1, organizer), entry(2, opponent)] } });
 
 const ROUND_1 = {
   number: 1,
@@ -60,7 +60,7 @@ describe("phase table", () => {
     expect(viewGame(inRound(47, null), 1).phase).toEqual({ kind: "wait-guess", round: 1, mine: 47 });
   });
 
-  it("both guessed, creator: enter the actual count", () => {
+  it("both guessed, organizer: enter the actual count", () => {
     expect(viewGame(inRound(40, 55), 1).phase).toEqual({ kind: "enter-actual", round: 1, mine: 40, theirs: 55 });
   });
 

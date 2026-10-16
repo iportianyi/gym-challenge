@@ -3,13 +3,13 @@ import { headers, LoginRefusedError } from "./http";
 
 export type PlayerRef = { id: number; name: string };
 
-/** Per-player lists have one entry per player, the creator first (add-rounds-and-scoring, D4). */
+/** Per-player lists have one entry per player, the organizer first (add-rounds-and-scoring, D4). */
 export type Points = { player_id: number; points: number };
 export type Penalty = { player_id: number; reps: number; doubled: boolean };
 
 export type Game = {
   id: number;
-  creator: PlayerRef;
+  organizer: PlayerRef;
   opponent: PlayerRef;
   exercise: string;
   base_reps: number;

@@ -29,7 +29,7 @@ export default function GameList({ games, playerId, onNewGame }: Props) {
 }
 
 function GameRow({ game, playerId }: { game: Game; playerId: number }) {
-  const other = game.creator.id === playerId ? game.opponent : game.creator;
+  const other = game.organizer.id === playerId ? game.opponent : game.organizer;
   const pointsOf = (id: number) => game.score.find((entry) => entry.player_id === id)?.points ?? 0;
   return (
     <li className={styles.game}>

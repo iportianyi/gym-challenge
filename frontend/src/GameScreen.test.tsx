@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { answerMe, freshTab, jsonResponse, openInTelegram, tma, type MeOptions } from "./test/telegram";
 
-// Game 1 of the spec: Клієнт (1, creator) against Тренер (2), Присідання, base 10, step 5, final 30.
+// Game 1 of the spec: Клієнт (1, organizer) against Тренер (2), Присідання, base 10, step 5, final 30.
 const SETTINGS = {
   id: 1,
-  creator: { id: 1, name: "Клієнт" },
+  organizer: { id: 1, name: "Клієнт" },
   opponent: { id: 2, name: "Тренер" },
   exercise: "Присідання",
   base_reps: 10,
@@ -16,8 +16,8 @@ const SETTINGS = {
   final_reps: 30,
 };
 
-const points = (creator: number, opponent: number) => [
-  { player_id: 1, points: creator },
+const points = (organizer: number, opponent: number) => [
+  { player_id: 1, points: organizer },
   { player_id: 2, points: opponent },
 ];
 
@@ -28,14 +28,14 @@ const entry = (playerId: number, value: Entry) => ({
   guessed: value !== null,
   value: typeof value === "number" ? value : null,
 });
-const current = (number: number, creator: Entry = null, opponent: Entry = null) => ({
+const current = (number: number, organizer: Entry = null, opponent: Entry = null) => ({
   number,
-  guesses: [entry(1, creator), entry(2, opponent)],
+  guesses: [entry(1, organizer), entry(2, opponent)],
 });
 
 const settled = (
   number: number,
-  creator: number,
+  organizer: number,
   opponent: number,
   actual: number,
   winnerId: number | null,
@@ -43,7 +43,7 @@ const settled = (
 ) => ({
   number,
   guesses: [
-    { player_id: 1, value: creator },
+    { player_id: 1, value: organizer },
     { player_id: 2, value: opponent },
   ],
   actual,
@@ -267,7 +267,7 @@ describe("game-screen: A game that cannot be shown leads back to my games or to 
   });
 });
 
-describe("game-screen: The scoreboard is shown from the viewer's side", () => {
+describe("game-screen: The score is shown from the viewer's side", () => {
   it("opponent looks at the score", async () => {
     stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
     openApp("/games/1", 2);
@@ -276,7 +276,7 @@ describe("game-screen: The scoreboard is shown from the viewer's side", () => {
     await waitFor(() => expect(collapse(board.textContent)).toBe("Ти 0 : 1 Клієнт"));
   });
 
-  it("creator looks at the score", async () => {
+  it("organizer looks at the score", async () => {
     stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
     openApp("/games/1", 1);
 
@@ -326,7 +326,7 @@ describe("game-screen: A guess is sent only after a confirm step", () => {
   });
 });
 
-describe("game-screen: The round shows who is still expected to act", () => {
+describe("game-screen: The round tells each player who acts next", () => {
   it("waiting for the opponent's guess", async () => {
     stubApi({ posts: [ok(detail({ current_round: current(1, 47, null) }))] });
     openApp("/games/1", 1);
@@ -347,7 +347,7 @@ describe("game-screen: The round shows who is still expected to act", () => {
     expect(screen.getByLabelText("Твоя здогадка")).toBeTruthy();
   });
 
-  it("both guessed, creator's view", async () => {
+  it("both guessed, organizer's view", async () => {
     stubApi({ gets: { 1: [ok(detail({ current_round: current(1, 40, 55) }))] } });
     openApp("/games/1", 1);
 
@@ -368,7 +368,7 @@ describe("game-screen: The round shows who is still expected to act", () => {
   });
 });
 
-describe("game-screen: The creator enters the actual count after a confirm step", () => {
+describe("game-screen: The organizer enters the actual count after a confirm step", () => {
   it("enter and confirm the actual count", async () => {
     const calls = stubApi({
       gets: { 1: [ok(detail({ current_round: current(1, 40, 55) }))] },

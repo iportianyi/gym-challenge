@@ -42,7 +42,7 @@ export function penaltyText(penalty: Penalty, me: number, exercise: string): str
 }
 
 export function viewGame(game: GameDetail, me: number): GameView {
-  const other = game.creator.id === me ? game.opponent : game.creator;
+  const other = game.organizer.id === me ? game.opponent : game.organizer;
   const pointsOf = (id: number) => game.score.find((entry) => entry.player_id === id)?.points ?? 0;
 
   const viewRound = (round: SettledRound): RoundView => {
@@ -94,5 +94,5 @@ function phaseOf(game: GameDetail, me: number, otherId: number): Phase {
   if (!mine?.guessed) return { kind: "guess", round, otherGuessed: theirs?.guessed ?? false };
   if (!theirs?.guessed) return { kind: "wait-guess", round, mine: mine.value ?? 0 };
   const values = { round, mine: mine.value ?? 0, theirs: theirs.value ?? 0 };
-  return game.creator.id === me ? { kind: "enter-actual", ...values } : { kind: "wait-actual", ...values };
+  return game.organizer.id === me ? { kind: "enter-actual", ...values } : { kind: "wait-actual", ...values };
 }

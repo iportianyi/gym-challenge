@@ -11,7 +11,7 @@ const OTHERS = [{ id: 2, name: "Тренер" }];
 
 const GAME = {
   id: 1,
-  creator: { id: 1, name: "Клієнт" },
+  organizer: { id: 1, name: "Клієнт" },
   opponent: { id: 2, name: "Тренер" },
   exercise: "Присідання",
   base_reps: 10,
