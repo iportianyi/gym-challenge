@@ -175,3 +175,24 @@ Frontend tests get a helper that sets `location.hash` to `#tgWebAppData=<t1>` (o
 ## Open Questions
 
 - Exact pinned `ngrok/ngrok` image tag — chosen at implementation time (latest release at least two weeks old).
+
+## Implementation notes
+
+Differences between the decisions above and the code, found during apply or by the review
+(`docs/reviews/telegram-auth.md`). Behaviour matches the specs in every case.
+
+- D7: `takeInitData()` runs in `App`, not in `main.tsx` (`96e3842`; the tests render `<App />` without `main.tsx`).
+- D7: `<Routes>` is not keyed by player id. The key existed so that switching players never showed the previous
+  player's data; with Telegram login there is no switching (one tab, one login), so the key had nothing to guard.
+- D7: `GET /api/players` is loaded by `NewGameForm` when the form opens, not by `PlayerSession`. Only the form needs
+  the list, and loading it there also covers a refused login on that request.
+- D8: the `tunnel` command is `http --url=${NGROK_URL:-} --log stdout app:8000`: `:-` keeps every other compose
+  command working without `.env`, and `--log stdout` (`c37877a`) makes connection errors visible — on the first real
+  run the agent stayed "reconnecting" with empty logs (no DNS in containers without the human's VPN). The service
+  also publishes ngrok's inspector on `127.0.0.1:4040` (the human's choice in task 4.1).
+- Task 5.2: the token pattern uses lookarounds, `(?<![\w-])\d{8,10}:[A-Za-z0-9_-]{35}(?![\w-])`, instead of
+  `\b…\b`: a token may end with `-`, where `\b` before a quote or line end does not match.
+- Task 4.1: `.env.example` was committed by the human (`2296c1e`): the agent's permission settings deny `.env*`.
+- Tests: the migration-0002 tests moved to `backend/tests/test_migrations.py` and assert 0002 at its own revision,
+  because 0003 deletes the games they used to play through the API; their assertions were restored after the
+  review (`f1fef2c`).
