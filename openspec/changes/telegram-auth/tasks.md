@@ -59,7 +59,7 @@
 - [x] 4.4 Write `docs/telegram-dev.md` (Ukrainian): creating the dev bot in @BotFather, setting the Mini App URL to
   `https://$NGROK_URL`, filling `.env` by hand, `docker compose --profile tunnel up --build`, the ngrok warning page,
   the dev link; verify every command in it runs as written (except the ones that need the human's `.env`)
-- [ ] 4.5 Ask the human to fill `.env` and run the tunnel, then open the dev bot in Telegram on a phone; record in
+- [x] 4.5 Ask the human to fill `.env` and run the tunnel, then open the dev bot in Telegram on a phone; record in
   the change's review packet whether the first login, the name form and `Мої ігри` worked (the human reports)
 
 ## 5. Docs and harness
