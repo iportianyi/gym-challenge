@@ -141,6 +141,18 @@
   font-size: 1.6rem;
 }
 
+/* The field and `Далі` on one line: the keypad opens under the field, so the button must not be below it. */
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.row > .next {
+  width: auto;
+  padding: 0 1.25rem;
+}
+
 .confirm {
   margin: 0;
   font-size: 1.1rem;

@@ -15,7 +15,9 @@ const RANGE_ERROR = `Введи ціле число від 0 до ${MAX}`;
 
 /**
  * A number that cannot be taken back: edit it, then confirm it inside the card (add-game-screen, D6). The range
- * is the server's (0–500), checked here so the person sees the reason before anything is sent.
+ * is the server's (0–500), checked here so the person sees the reason before anything is sent. The forward button is
+ * on the right in both steps, and `Далі` shares the field's line so the iOS keypad cannot cover it
+ * (number-entry-thumb-reach, D1–D2).
  */
 export default function NumberEntry({ id, label, confirmText, onSend }: Props) {
   const [text, setText] = useState("");
@@ -45,11 +47,11 @@ export default function NumberEntry({ id, label, confirmText, onSend }: Props) {
       <div className={styles.entry}>
         <p className={styles.confirm}>{confirmText(confirming)}</p>
         <div className={styles.actions}>
-          <button type="button" className={ui.primary} disabled={sending} onClick={() => void send(confirming)}>
-            Надіслати
-          </button>
           <button type="button" className={ui.secondary} disabled={sending} onClick={() => setConfirming(null)}>
             Змінити
+          </button>
+          <button type="button" className={ui.primary} disabled={sending} onClick={() => void send(confirming)}>
+            Надіслати
           </button>
         </div>
       </div>
@@ -61,26 +63,28 @@ export default function NumberEntry({ id, label, confirmText, onSend }: Props) {
       <label htmlFor={id} className={styles.fieldLabel}>
         {label}
       </label>
-      <input
-        id={id}
-        className={`${styles.number} digits`}
-        type="number"
-        inputMode="numeric"
-        min={0}
-        max={MAX}
-        step={1}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        autoComplete="off"
-      />
+      <div className={styles.row}>
+        <input
+          id={id}
+          className={`${styles.number} digits`}
+          type="number"
+          inputMode="numeric"
+          min={0}
+          max={MAX}
+          step={1}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+          autoComplete="off"
+        />
+        <button type="submit" className={`${ui.primary} ${styles.next}`}>
+          Далі
+        </button>
+      </div>
       {error && (
         <p className={ui.error} role="alert">
           {RANGE_ERROR}
         </p>
       )}
-      <button type="submit" className={ui.primary}>
-        Далі
-      </button>
     </form>
   );
 }

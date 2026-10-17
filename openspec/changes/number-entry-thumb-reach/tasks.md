@@ -16,10 +16,10 @@ Scope: frontend only (`NumberEntry`, its CSS, `GameScreen.test.tsx`); no backend
 
 ## 2. Implementation
 
-- [ ] 2.1 `NumberEntry.tsx` + `GameScreen.module.css`: field and `Далі` in one `1fr auto` row, error below it
+- [x] 2.1 `NumberEntry.tsx` + `GameScreen.module.css`: field and `Далі` in one `1fr auto` row, error below it
   (design D1); confirm buttons in the order `Змінити`, `Надіслати` (design D2). Verify every test in
   `GameScreen.test.tsx` passes
-- [ ] 2.2 Commit (`feat(web): next button beside the number field, send on the right`)
+- [x] 2.2 Commit (`feat(web): next button beside the number field, send on the right`)
 - [ ] 2.3 Playwright on `docker compose up --build` at 360×640 (dev login link): assert the bounding-box conditions
   of "Далі stays beside the field on a phone" and see `Змінити` left of `Надіслати`; screenshots in `.playwright-mcp/`
 - [ ] 2.4 Ask the human to confirm on the iPhone through the dev bot that `Далі` is visible above the keypad
