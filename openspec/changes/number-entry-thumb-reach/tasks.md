@@ -26,7 +26,8 @@ Scope: frontend only (`NumberEntry`, its CSS, `GameScreen.test.tsx`); no backend
   confirm buttons `Змінити`, `Надіслати`, left to right (`number-entry-edit-360.png`, `number-entry-confirm-360.png`).
   `.env` now holds the real bot token, so the app ran with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell for
   the dev link, then was stopped as it was before
-- [ ] 2.4 Ask the human to confirm on the iPhone through the dev bot that `Далі` is visible above the keypad
+- [x] 2.4 Ask the human to confirm on the iPhone through the dev bot that `Далі` is visible above the keypad — the
+  human confirmed on 2026-10-17: «на айфоні все ок»
 
 ## 3. Review and check
 
