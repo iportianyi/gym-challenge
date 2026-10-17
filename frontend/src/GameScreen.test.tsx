@@ -611,3 +611,42 @@ describe("game-screen: A refused move shows the real state, not an error", () =>
     expect(await screen.findByText(text("Переможець — Клієнт"))).toBeTruthy();
   });
 });
+
+describe("game-screen: The number entry keeps its forward button under the right thumb", () => {
+  const buttonsOf = (panel: HTMLElement) => within(panel).getAllByRole("button").map((button) => button.textContent);
+  const follows = (first: Element, second: Element) =>
+    Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  it("confirm step puts Надіслати on the right", async () => {
+    stubApi();
+    openApp("/games/1", 1);
+
+    await typeAndNext("Твоя здогадка", "47");
+
+    await screen.findByText(text("Надіслати здогадку 47? Змінити не вийде."));
+    expect(buttonsOf(screen.getByRole("region", { name: "Раунд 1" }))).toEqual(["Змінити", "Надіслати"]);
+  });
+
+  it("confirm step of the actual count puts Надіслати on the right", async () => {
+    stubApi({ gets: { 1: [ok(detail({ current_round: current(1, 40, 55) }))] } });
+    openApp("/games/1", 1);
+
+    await typeAndNext("Реальна кількість", "47");
+
+    await screen.findByText(text("Реальна кількість 47? Це закриє раунд."));
+    expect(buttonsOf(screen.getByRole("region", { name: "Раунд 1" }))).toEqual(["Змінити", "Надіслати"]);
+  });
+
+  it("Далі follows the field on its line", async () => {
+    stubApi();
+    openApp("/games/1", 1);
+
+    await typeAndNext("Твоя здогадка", "501");
+
+    const error = await screen.findByText("Введи ціле число від 0 до 500");
+    const field = screen.getByLabelText("Твоя здогадка");
+    const next = screen.getByRole("button", { name: "Далі" });
+    expect(field.nextElementSibling).toBe(next);
+    expect(follows(next, error)).toBe(true);
+  });
+});

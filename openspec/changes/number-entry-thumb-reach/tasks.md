@@ -4,12 +4,15 @@ Scope: frontend only (`NumberEntry`, its CSS, `GameScreen.test.tsx`); no backend
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/GameScreen.test.tsx`: one test per Vitest-checkable scenario of "The number entry keeps its
+- [x] 1.1 `frontend/src/GameScreen.test.tsx`: one test per Vitest-checkable scenario of "The number entry keeps its
   forward button under the right thumb" (both confirm-step orders and "Далі follows the field on its line"), asserting
   order with `compareDocumentPosition`; the 360×640 scenario is covered by task 2.3 (design D3)
-- [ ] 1.2 Run `env UID=$(id -u) GID=$(id -g) docker compose --profile check run --rm --no-deps frontend-check vitest
-  run` and quote the failing lines; every other test still passes
-- [ ] 1.3 Commit the failing tests on their own (`test: red scenarios for thumb-side buttons in the number entry`)
+- [x] 1.2 Run `env UID=$(id -u) GID=$(id -g) docker compose --profile check run --rm --no-deps frontend-check vitest
+  run` and quote the failing lines; every other test still passes — `× confirm step puts Надіслати on the right`
+  (`expected [ 'Надіслати', 'Змінити' ] to deeply equal [ 'Змінити', 'Надіслати' ]`), the same for the actual count,
+  `× Далі follows the field on its line` (`expected <p class="_error_…" role="alert"> to be <button type="submit">`);
+  `Tests 3 failed | 94 passed (97)`
+- [x] 1.3 Commit the failing tests on their own (`test: red scenarios for thumb-side buttons in the number entry`)
 
 ## 2. Implementation
 
