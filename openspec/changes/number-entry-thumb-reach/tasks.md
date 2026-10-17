@@ -31,6 +31,8 @@ Scope: frontend only (`NumberEntry`, its CSS, `GameScreen.test.tsx`); no backend
 
 ## 3. Review and check
 
-- [ ] 3.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/number-entry-thumb-reach.md`
-- [ ] 3.2 Run the project check command and quote its summary line
+- [x] 3.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/number-entry-thumb-reach.md` — ACCEPT; findings 1–2
+  (geometry checked once by Playwright, in round 2) are allowed by design D3, no code change
+- [x] 3.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 129 passed, Vitest 97 passed)
