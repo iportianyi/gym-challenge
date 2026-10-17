@@ -20,8 +20,12 @@ Scope: frontend only (`NumberEntry`, its CSS, `GameScreen.test.tsx`); no backend
   (design D1); confirm buttons in the order `Змінити`, `Надіслати` (design D2). Verify every test in
   `GameScreen.test.tsx` passes
 - [x] 2.2 Commit (`feat(web): next button beside the number field, send on the right`)
-- [ ] 2.3 Playwright on `docker compose up --build` at 360×640 (dev login link): assert the bounding-box conditions
+- [x] 2.3 Playwright on `docker compose up --build` at 360×640 (dev login link): assert the bounding-box conditions
   of "Далі stays beside the field on a phone" and see `Змінити` left of `Надіслати`; screenshots in `.playwright-mcp/`
+  — game 1, round 2, `Твоя здогадка`: field x 29.6–229.0, `Далі` x 237.0–315.4, both y 399.5 and 48 px tall;
+  confirm buttons `Змінити`, `Надіслати`, left to right (`number-entry-edit-360.png`, `number-entry-confirm-360.png`).
+  `.env` now holds the real bot token, so the app ran with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell for
+  the dev link, then was stopped as it was before
 - [ ] 2.4 Ask the human to confirm on the iPhone through the dev bot that `Далі` is visible above the keypad
 
 ## 3. Review and check
