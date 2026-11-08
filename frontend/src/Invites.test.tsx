@@ -212,7 +212,7 @@ describe("invites: The waiting game's screen gives the organizer the link", () =
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Гра: Присідання" })).toBeTruthy();
-    expect(await screen.findByText("Чекаємо суперника. Надішли йому посилання.")).toBeTruthy();
+    expect(await screen.findByText("Чекаємо суперника. Надішли посилання на гру.")).toBeTruthy();
     expect(screen.getByText(INVITE_URL)).toBeTruthy();
     expect(screen.getByRole("link", { name: "Надіслати в Telegram" }).getAttribute("href")).toBe(
       "https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fgym_dev_bot%3Fstartapp%3DAbc_123-xyz&text=%D0%97%D1%96%D0%B3%D1%80%D0%B0%D0%B9%20%D0%B7%D1%96%20%D0%BC%D0%BD%D0%BE%D1%8E%20%D0%B2%20Gym%20Challenge",
@@ -255,20 +255,20 @@ describe("invites: The waiting game's screen gives the organizer the link", () =
       stubApi({ gets: [WAITING, JOINED] });
       openInTelegram("/games/7", 1);
       render(<App />);
-      await screen.findByText("Чекаємо суперника. Надішли йому посилання.");
+      await screen.findByText("Чекаємо суперника. Надішли посилання на гру.");
 
       await vi.advanceTimersByTimeAsync(3000);
 
       expect(await screen.findByRole("heading", { name: "Раунд 1" })).toBeTruthy();
       expect(screen.getByLabelText("Твоя здогадка")).toBeTruthy();
-      expect(screen.queryByText("Чекаємо суперника. Надішли йому посилання.")).toBeNull();
+      expect(screen.queryByText("Чекаємо суперника. Надішли посилання на гру.")).toBeNull();
     });
 
     it("waiting game is polled", async () => {
       const calls = stubApi({ gets: [WAITING] });
       openInTelegram("/games/7", 1);
       render(<App />);
-      await screen.findByText("Чекаємо суперника. Надішли йому посилання.");
+      await screen.findByText("Чекаємо суперника. Надішли посилання на гру.");
       await waitFor(() => expect(gamesGets(calls)).toHaveLength(1));
 
       await vi.advanceTimersByTimeAsync(3000);
@@ -292,7 +292,7 @@ describe("invites: A new invite game opens its screen", () => {
     fireEvent.change(screen.getByLabelText("Повторень за програну гру"), { target: { value: "30" } });
     fireEvent.click(screen.getByRole("button", { name: "Почати гру" }));
 
-    expect(await screen.findByText("Чекаємо суперника. Надішли йому посилання.")).toBeTruthy();
+    expect(await screen.findByText("Чекаємо суперника. Надішли посилання на гру.")).toBeTruthy();
     expect(window.location.pathname).toBe("/games/7");
     const posts = calls.filter((call) => call.method === "POST" && call.url === "/api/games");
     expect(posts.map((call) => call.body)).toEqual([

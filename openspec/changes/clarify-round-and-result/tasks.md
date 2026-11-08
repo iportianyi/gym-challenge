@@ -6,17 +6,23 @@ dependency or harness changes. Vitest runs as
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/GameScreen.test.tsx`: one test per Vitest-checkable scenario of the game-screen delta — the
+- [x] 1.1 `frontend/src/GameScreen.test.tsx`: one test per Vitest-checkable scenario of the game-screen delta — the
   new scenarios ("Card comes before the next round", "Exact guess in the card", "The card's round is not repeated in
   the history", "One settled round shown in the card has no history", all of "The round says what is guessed" and
   "A penalty keeps its reps with the exercise"), and the scenarios whose accepted text or data changed ("Two rounds,
   newest first", all of "A doubled penalty is marked") rewritten in place to the delta, same game data and roles.
   Reading order via `compareDocumentPosition`; exact `textContent` for U+00A0. The three "score fits a phone"
   scenarios are covered by task 3.2 (design D7)
-- [ ] 1.2 `frontend/src/Invites.test.tsx`: the four scenarios that name `Чекаємо суперника. Надішли йому посилання.`
+- [x] 1.2 `frontend/src/Invites.test.tsx`: the four scenarios that name `Чекаємо суперника. Надішли йому посилання.`
   rewritten to `Чекаємо суперника. Надішли посилання на гру.`; "Buttons fit a phone screen" is covered by task 3.2
-- [ ] 1.3 Run Vitest and quote the failing lines and the `Tests … failed | … passed` summary; every test outside
-  1.1–1.2 still passes
+  — five occurrences in four tests (one test also asserts the waiting text in its form flow)
+- [x] 1.3 Run Vitest and quote the failing lines and the `Tests … failed | … passed` summary; every test outside
+  1.1–1.2 still passes — `Tests  16 failed | 90 passed (106)`: the 12 game-screen tests of the doubled mark (3), no-break
+  spaces (2), card order and exact guess (2), what is guessed (2: guess, actual count) and history (3), all
+  `Unable to find an element with the text` or `expected false to be true`, and history `expected [ …(2) ] to have a
+  length of 1 but got 2` / `expected <h3 id="history-heading" …(1)></h3> to be null`; 4 invites tests `Unable to find
+  an element with the text: Чекаємо суперника. Надішли посилання на гру.`. "Nothing to explain while waiting" passes
+  already (it asserts absence). ESLint and tsc clean
 - [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for the round result, exact hit and invite copy`)
 
 ## 2. Round view and screen

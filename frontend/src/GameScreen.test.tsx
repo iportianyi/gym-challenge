@@ -1,4 +1,5 @@
-// UI scenarios from openspec/specs/game-screen/spec.md (and the exact-guess-doubles-penalty and telegram-auth deltas).
+// UI scenarios from openspec/specs/game-screen/spec.md (and the exact-guess-doubles-penalty, telegram-auth and
+// clarify-round-and-result deltas).
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -95,6 +96,15 @@ const ROUND_1_EXACT = {
   current_round: current(2),
 };
 
+// Round 1 settled as (40, 55, 47), won by player 1; round 2 as (50, 47, 47), won exactly by player 2.
+const TWO_ROUNDS = {
+  score: points(1, 1),
+  rounds: [
+    settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10, doubled: false }),
+    settled(2, 50, 47, 47, 2, { player_id: 1, reps: 20, doubled: true }),
+  ],
+};
+
 /** Game 1 as `GET /api/games` lists it. */
 const LISTED = { ...SETTINGS, status: "active", score: points(0, 0), winner_id: null };
 
@@ -170,6 +180,17 @@ function openApp(path: string, player: number) {
 }
 
 const heading = (name: string) => screen.findByRole("heading", { name });
+
+const follows = (first: Element, second: Element) =>
+  Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+/** True when every element follows the one before it in reading order. */
+const inOrder = (elements: Element[]) =>
+  elements.every((element, index) => index === 0 || follows(elements[index - 1], element));
+
+/** An element inside `container` whose text content is exactly `wanted`, no whitespace collapsing. */
+const exactly = (container: Element, wanted: string) =>
+  Array.from(container.querySelectorAll("*")).some((element) => element.textContent === wanted);
 
 let visibility: DocumentVisibilityState = "visible";
 function setVisibility(state: DocumentVisibilityState) {
@@ -435,35 +456,71 @@ describe("game-screen: The round just settled is shown as a result card", () => 
     expect(await heading("Раунд 2")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Підсумок раунду 1" })).toBeNull();
   });
+
+  it("card comes before the next round", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
+    openApp("/games/1", 2);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    const [cardHeading, roundHeading] = ["Підсумок раунду 1", "Раунд 2"].map((name) =>
+      screen.getByRole("heading", { name }),
+    );
+    expect(follows(cardHeading, roundHeading)).toBe(true);
+    const lines = [
+      "Переможець раунду — Клієнт",
+      "Твоє покарання: Присідання × 10",
+      "Реальна кількість: 47",
+      "Ти: 55 · відстань 8",
+      "Клієнт: 40 · відстань 7",
+    ].map((line) => within(card).getByText(text(line)));
+    expect(inOrder(lines)).toBe(true);
+  });
+
+  it("exact guess in the card", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_EXACT))] } });
+    openApp("/games/1", 1);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    expect(within(card).getByText(text("Ти: 50 · відстань 3"))).toBeTruthy();
+    expect(within(card).getByText(text("Тренер: 47 · точно"))).toBeTruthy();
+    expect(card.textContent).not.toContain("відстань 0");
+  });
 });
 
 describe("game-screen: The screen shows every settled round", () => {
   it("two rounds, newest first", async () => {
-    stubApi({
-      gets: {
-        1: [
-          ok(
-            detail({
-              score: points(1, 1),
-              rounds: [
-                settled(1, 40, 55, 47, 1, { player_id: 2, reps: 10, doubled: false }),
-                settled(2, 50, 47, 47, 2, { player_id: 1, reps: 20, doubled: true }),
-              ],
-              current_round: current(3),
-            }),
-          ),
-        ],
-      },
-    });
+    stubApi({ gets: { 1: [ok(detail({ ...TWO_ROUNDS, current_round: current(3, null, "hidden") }))] } });
     openApp("/games/1", 1);
 
     const history = await screen.findByRole("list", { name: "Історія раундів" });
     const items = within(history).getAllByRole("listitem");
     expect(items).toHaveLength(2);
-    expect(within(items[0]).getByText(text("Раунд 2"))).toBeTruthy();
-    expect(within(items[1]).getByText(text("Раунд 1"))).toBeTruthy();
+    expect(within(items[0]).getByText(text("Раунд 2 · у залі 47"))).toBeTruthy();
+    expect(within(items[1]).getByText(text("Раунд 1 · у залі 47"))).toBeTruthy();
+    expect(within(items[0]).getByText(text("Ти 50 · Тренер 47 (точно)"))).toBeTruthy();
     expect(within(items[0]).getByText(text("Переможець раунду — Тренер"))).toBeTruthy();
-    expect(within(items[0]).getByText(text("Твоє покарання: Присідання × 20 (×2 точно)"))).toBeTruthy();
+    expect(
+      within(items[0]).getByText(text("Твоє покарання: Присідання × 20 (10 ×2 за точне влучання)")),
+    ).toBeTruthy();
+    expect(within(items[1]).getByText(text("Ти 40 · Тренер 55"))).toBeTruthy();
+  });
+
+  it("the card's round is not repeated in the history", async () => {
+    stubApi({ gets: { 1: [ok(detail({ ...TWO_ROUNDS, current_round: current(3) }))] } });
+    openApp("/games/1", 1);
+
+    expect(await heading("Підсумок раунду 2")).toBeTruthy();
+    const items = within(screen.getByRole("list", { name: "Історія раундів" })).getAllByRole("listitem");
+    expect(items).toHaveLength(1);
+    expect(within(items[0]).getByText(text("Раунд 1 · у залі 47"))).toBeTruthy();
+  });
+
+  it("one settled round shown in the card has no history", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
+    openApp("/games/1", 1);
+
+    expect(await heading("Підсумок раунду 1")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Історія раундів" })).toBeNull();
   });
 
   it("new game has no history", async () => {
@@ -501,17 +558,17 @@ describe("game-screen: A doubled penalty is marked", () => {
     openApp("/games/1", 1);
 
     const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
-    expect(within(card).getByText(text("Твоє покарання: Присідання × 20 (×2 точно)"))).toBeTruthy();
+    expect(within(card).getByText(text("Твоє покарання: Присідання × 20 (10 ×2 за точне влучання)"))).toBeTruthy();
   });
 
   it("doubled round penalty in the history", async () => {
-    stubApi({ gets: { 1: [ok(detail(ROUND_1_EXACT))] } });
+    stubApi({ gets: { 1: [ok(detail({ ...ROUND_1_EXACT, current_round: current(2, "hidden", null) }))] } });
     openApp("/games/1", 2);
 
     const history = await screen.findByRole("list", { name: "Історія раундів" });
     const [item] = within(history).getAllByRole("listitem");
-    expect(within(item).getByText(text("Раунд 1"))).toBeTruthy();
-    expect(within(item).getByText(text("Покарання суперника: Присідання × 20 (×2 точно)"))).toBeTruthy();
+    expect(within(item).getByText(text("Раунд 1 · у залі 47"))).toBeTruthy();
+    expect(within(item).getByText(text("Покарання суперника: Присідання × 20 (10 ×2 за точне влучання)"))).toBeTruthy();
   });
 
   it("doubled final penalty", async () => {
@@ -519,7 +576,7 @@ describe("game-screen: A doubled penalty is marked", () => {
     openApp("/games/1", 2);
 
     expect(await screen.findByText(text("Переможець — Клієнт"))).toBeTruthy();
-    expect(screen.getByText(text("Твоє покарання: Присідання × 60 (×2 точно)"))).toBeTruthy();
+    expect(screen.getByText(text("Твоє покарання: Присідання × 60 (30 ×2 за точне влучання)"))).toBeTruthy();
   });
 
   it("penalty that was not doubled has no mark", async () => {
@@ -528,7 +585,55 @@ describe("game-screen: A doubled penalty is marked", () => {
 
     const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
     expect(within(card).getByText(text("Твоє покарання: Присідання × 10"))).toBeTruthy();
-    expect(collapse(document.body.textContent)).not.toContain("×2 точно");
+    expect(collapse(document.body.textContent)).not.toContain("за точне влучання");
+  });
+});
+
+describe("game-screen: The round says what is guessed", () => {
+  it("guess explained", async () => {
+    stubApi();
+    openApp("/games/1", 2);
+
+    const round = await heading("Раунд 1");
+    const question = screen.getByText(text("Скільки людей зараз у залі?"));
+    const rule = screen.getByText(text("Ближча здогадка отримує бал. Гра — до 5 балів."));
+    expect(inOrder([round, question, rule, screen.getByLabelText("Твоя здогадка")])).toBe(true);
+  });
+
+  it("actual count explained", async () => {
+    stubApi({ gets: { 1: [ok(detail({ current_round: current(1, 40, 55) }))] } });
+    openApp("/games/1", 1);
+
+    const question = await screen.findByText(text("Скільки людей показує апка залу?"));
+    expect(follows(question, screen.getByLabelText("Реальна кількість"))).toBe(true);
+    expect(screen.queryByText(text("Скільки людей зараз у залі?"))).toBeNull();
+  });
+
+  it("nothing to explain while waiting", async () => {
+    stubApi({ gets: { 1: [ok(detail({ current_round: current(1, 47, null) }))] } });
+    openApp("/games/1", 1);
+
+    expect(await screen.findByText(text("Твоя здогадка: 47"))).toBeTruthy();
+    expect(screen.queryByText(text("Скільки людей зараз у залі?"))).toBeNull();
+    expect(screen.queryByText(text("Скільки людей показує апка залу?"))).toBeNull();
+  });
+});
+
+describe("game-screen: A penalty keeps its reps with the exercise", () => {
+  it("round penalty with no-break spaces", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_SETTLED))] } });
+    openApp("/games/1", 2);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    expect(exactly(card, "Твоє покарання: Присідання\u00a0×\u00a010")).toBe(true);
+  });
+
+  it("doubled penalty with no-break spaces", async () => {
+    stubApi({ gets: { 1: [ok(detail(ROUND_1_EXACT))] } });
+    openApp("/games/1", 1);
+
+    const card = await screen.findByRole("region", { name: "Підсумок раунду 1" });
+    expect(exactly(card, "Твоє покарання: Присідання\u00a0×\u00a020 (10\u00a0×2\u00a0за точне влучання)")).toBe(true);
   });
 });
 
@@ -614,8 +719,6 @@ describe("game-screen: A refused move shows the real state, not an error", () =>
 
 describe("game-screen: The number entry keeps its forward button under the right thumb", () => {
   const buttonsOf = (panel: HTMLElement) => within(panel).getAllByRole("button").map((button) => button.textContent);
-  const follows = (first: Element, second: Element) =>
-    Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
 
   it("confirm step puts Надіслати on the right", async () => {
     stubApi();
