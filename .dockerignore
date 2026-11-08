@@ -11,3 +11,5 @@ frontend/dist
 **/__pycache__
 **/.venv
 **/*.db
+# Secrets: `fly deploy` sends this context to Fly's remote builder, and no stage reads .env (deploy-fly, D3).
+.env*

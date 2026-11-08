@@ -1,0 +1,38 @@
+# The hosted game on Fly.io (deploy-fly, design D1; docs/fly-deploy.md).
+# One Machine from the Dockerfile's `runtime` stage, SQLite on the gym_challenge_data volume.
+# The game bot's token is a Fly secret (`fly secrets import`), never in this file.
+
+app = "gym-challenge"
+# Provisional: confirmed against `fly platform regions` in task 3.2 (nearest to Ukraine).
+primary_region = "waw"
+
+[build]
+  build-target = "runtime"
+
+[env]
+  # The same path as in docker-compose.yml, on the mounted volume.
+  DATABASE_URL = "sqlite:////app/data/gym.db"
+  TELEGRAM_BOT_USERNAME = "gym_challenge_iport_bot"
+
+[[mounts]]
+  source = "gym_challenge_data"
+  destination = "/app/data"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  # Stopped when idle, started by the next request; the game screen polls every 3 s while open.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

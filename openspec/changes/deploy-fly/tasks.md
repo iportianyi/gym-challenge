@@ -22,18 +22,23 @@ result. `fly …` below means `docker compose --profile deploy run --rm fly …`
   (`test: hosting scenario checks for the Fly.io app`) — `FAIL health over HTTPS: ENOTFOUND`, the same `ENOTFOUND`
   for the redirect, the web app and the development login, `FAIL fly.toml names no token: ENOENT`;
   `hosting-check: 5 of 5 failed (https://gym-challenge.fly.dev)`, exit 1
-- [ ] 1.3 The `.env` scenario: build a throwaway Dockerfile from stdin (`FROM busybox`, `COPY . /ctx`,
+- [x] 1.3 The `.env` scenario: build a throwaway Dockerfile from stdin (`FROM busybox`, `COPY . /ctx`,
   `RUN ls -a /ctx`) with the repository context and quote whether any name starts with `.env` — expected to fail now
+  — fails: `ls -a /ctx | grep "^\.env"` lists `.env` and `.env.example` (`busybox:1.37.0`, names only)
 
 ## 2. Repository configuration
 
-- [ ] 2.1 `.dockerignore`: add `.env*` (design D3); rerun 1.3 and quote that no name starts with `.env`
-- [ ] 2.2 `docker-compose.yml`: the `fly` service in profile `deploy` and the `fly-home` volume (design D5), image
+- [x] 2.1 `.dockerignore`: add `.env*` (design D3); rerun 1.3 and quote that no name starts with `.env` — `NONE`
+- [x] 2.2 `docker-compose.yml`: the `fly` service in profile `deploy` and the `fly-home` volume (design D5), image
   `flyio/flyctl` pinned to a release at least two weeks old (version checked on Docker Hub, recorded here); verify
   `docker compose --profile deploy run --rm fly version` prints that version and `docker compose config --quiet`
-  passes
-- [ ] 2.3 `fly.toml` as in design D1, the region left as a placeholder until 3.2; verify the `fly.toml` checks of
-  `hosting-check.mjs` pass
+  passes — `flyio/flyctl:v0.4.122` (pushed 2026-10-23; v0.4.123 and later are under two weeks old on 2026-11-08):
+  `flyctl v0.4.122 linux/amd64 … BuildDate: 2026-10-23T19:34:42Z`; `config --quiet` OK. The image runs as root
+  (`User` empty, entrypoint `/flyctl`); no root-owned file appeared in the working tree after `fly version`
+- [x] 2.3 `fly.toml` as in design D1, the region left as a placeholder until 3.2; verify the `fly.toml` checks of
+  `hosting-check.mjs` pass — `ok   fly.toml names no token` (a first comment naming the variable failed it and was
+  reworded); parsed by Python's `tomllib`; `fly config validate` needs a login, run after 3.1. Region `waw`,
+  provisional
 - [ ] 2.4 Commit (`chore(deploy): fly.toml, flyctl in Docker, .env out of the build context`)
 
 ## 3. First deploy

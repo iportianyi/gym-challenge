@@ -31,6 +31,20 @@ services:
       # ngrok's request inspector, on this machine only.
       - "127.0.0.1:4040:4040"
 
+  # flyctl for the hosted game (deploy-fly, design D5; docs/fly-deploy.md):
+  #   docker compose --profile deploy run --rm fly <command>
+  # The image's entrypoint is flyctl. Its login lives in the fly-home volume, not on the host or in the repository.
+  # `fly deploy --remote-only` builds on Fly's builder, so no Docker socket is needed.
+  fly:
+    profiles: [deploy]
+    image: flyio/flyctl:v0.4.122
+    working_dir: /app
+    environment:
+      HOME: /fly-home
+    volumes:
+      - .:/app
+      - fly-home:/fly-home
+
   backend-check:
     profiles: [check]
     build:
@@ -57,3 +71,5 @@ services:
 
 volumes:
   gym-data:
+  # flyctl's login and config (`docker volume rm gym-challenge_fly-home` logs out).
+  fly-home:
