@@ -3,8 +3,8 @@
 # The game bot's token is a Fly secret (`fly secrets import`), never in this file.
 
 app = "gym-challenge"
-# Provisional: confirmed against `fly platform regions` in task 3.2 (nearest to Ukraine).
-primary_region = "waw"
+# Nearest to Ukraine of `fly platform regions` on 2026-11-08 (Warsaw is no longer listed).
+primary_region = "fra"
 
 [build]
   build-target = "runtime"

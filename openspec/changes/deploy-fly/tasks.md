@@ -39,24 +39,36 @@ result. `fly …` below means `docker compose --profile deploy run --rm fly …`
   `hosting-check.mjs` pass — `ok   fly.toml names no token` (a first comment naming the variable failed it and was
   reworded); parsed by Python's `tomllib`; `fly config validate` needs a login, run after 3.1. Region `waw`,
   provisional
-- [ ] 2.4 Commit (`chore(deploy): fly.toml, flyctl in Docker, .env out of the build context`)
+- [x] 2.4 Commit (`chore(deploy): fly.toml, flyctl in Docker, .env out of the build context`)
 
 ## 3. First deploy
 
-- [ ] 3.1 **human** — `fly auth login` (opens a URL to approve in the browser); agent verifies `fly auth whoami`
-- [ ] 3.2 Choose the region from `fly platform regions` (nearest to Ukraine: Warsaw, then Frankfurt), write it into
-  `fly.toml`, record the choice here
-- [ ] 3.3 **human** — `fly apps create gym-challenge` (if taken: `gym-challenge-iport`, and a separate commit
+- [x] 3.1 **human** — `fly auth login` (opens a URL to approve in the browser); agent verifies `fly auth whoami`
+  — the human logged in; `fly auth whoami` names the human's account; `fly config validate`: `✓ Configuration is valid`
+- [x] 3.2 Choose the region from `fly platform regions` (nearest to Ukraine: Warsaw, then Frankfurt), write it into
+  `fly.toml`, record the choice here — `fra` (Frankfurt): the 2026-11-08 list has no Warsaw; Europe offers ams, fra,
+  lhr, cdg, arn
+- [x] 3.3 **human** — `fly apps create gym-challenge` (if taken: `gym-challenge-iport`, and a separate commit
   moves the address in spec, `fly.toml`, docs and `hosting-check.mjs`, design D1) and `fly volumes create gym_challenge_data --region <region> --size 1`
-  (billed resources); agent verifies with `fly volumes list`
-- [ ] 3.4 **human** — `fly secrets import`, pasting `TELEGRAM_BOT_TOKEN=<token of gym_challenge_iport_bot>` and
-  Ctrl-D; agent verifies the name in `fly secrets list` ("Token set as a secret")
-- [ ] 3.5 `fly deploy --remote-only`; quote the release line and `fly status`. Check design D4 with
+  (billed resources); agent verifies with `fly volumes list` — the name was free: `fly apps list` shows
+  `gym-challenge` (`pending`); volume `vol_4ql12zndpqeng6wr` `gym_challenge_data`, 1GB, `fra`, encrypted, not attached
+- [x] 3.4 **human** — `fly secrets import`, pasting `TELEGRAM_BOT_TOKEN=<token of gym_challenge_iport_bot>` and
+  Ctrl-D; agent verifies the name in `fly secrets list` ("Token set as a secret") — the human ran it with `--stage`
+  (no Machine yet); `fly secrets list --json` names `TELEGRAM_BOT_TOKEN`, status `Staged`
+- [x] 3.5 `fly deploy --remote-only`; quote the release line and `fly status`. Check design D4 with
   `fly ssh console -C "ls -ld /app/data"` and the health check; if `app` cannot write, add the entrypoint of D4, record
-  it in design.md as an implementation note, and redeploy
-- [ ] 3.6 Run `node scripts/hosting-check.mjs` and quote every line passing
-- [ ] 3.7 "Idle Machine wakes up": `fly machine stop`, check `fly machine list` shows `stopped`, request
-  `/api/health`, quote `200` and the state `started`
+  it in design.md as an implementation note, and redeploy — `fly deploy --remote-only --app gym-challenge`: image
+  `registry.fly.io/gym-challenge:deployment-01M6Y7BA3CRR01NMGBPXWN2RQB` (106 MB), shared IPv4 and a dedicated IPv6
+  (no paid IPv4), `Machine 857709db4e6228 [app] update finished: success`, `✓ DNS configuration verified`.
+  `fly status`: version 1, `fra`, `started`, `1 total, 1 passing`. D4 not needed: `ls -la /app/data` shows
+  `drwxr-xr-x app app .` and `gym.db` owned by `app` (57344 bytes, migrated at startup). One health-check failure
+  at 18:41:15, a second before `Application startup complete` at 18:41:16; passing since (design notes)
+- [x] 3.6 Run `node scripts/hosting-check.mjs` and quote every line passing — `ok` health over HTTPS, plain HTTP is
+  redirected (`301`, `Location: https://gym-challenge.fly.dev/api/health` by `curl`), web app at the root,
+  development login refused, fly.toml names no token; `hosting-check: OK (https://gym-challenge.fly.dev)`, exit 0
+- [x] 3.7 "Idle Machine wakes up": `fly machine stop`, check `fly machine list` shows `stopped`, request
+  `/api/health`, quote `200` and the state `started` — `857709db4e6228 has been successfully stopped`; states before
+  `['stopped']`, health `200 in 4.70s`, after `['started']`
 - [ ] 3.8 Commit the region and any D4 change (`chore(deploy): first deploy to Fly.io in <region>`)
 
 ## 4. Telegram

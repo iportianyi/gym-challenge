@@ -139,3 +139,16 @@ First deploy: create app → create Volume → import the secret → deploy → 
 Rollback: `fly deploy --image <previous image>` (listed by `fly releases --image`) when the release added no
 migration; after a migration the old code may not read the new schema, so the rollback is to restore the Volume from
 its last snapshot and redeploy the previous image. Removing the hosting: `fly apps destroy`.
+
+## Implementation notes
+
+- Region `fra`: the `fly platform regions` list of 2026-11-08 has no Warsaw (D1's first choice).
+- D4's entrypoint was not needed: Fly mounted `gym_challenge_data` at `/app/data` owned by `app`, and the app
+  created and migrated `gym.db` there on the first start (task 3.5).
+- `flyctl` v0.4.122 runs as root in its container (the image sets no user); it writes nothing to the working tree
+  in the commands used here, so the service keeps the image's user rather than mapping the host's (whose UID could
+  not write the root-owned `fly-home` volume).
+- The first health check after a cold start can fail once: the Machine answers about 2–3 s after boot and
+  `grace_period` is 10 s, yet one failure was logged a second before `Application startup complete`. It passed
+  from the next check on; left as is, since `auto_start_machines` holds the request until the app answers (the
+  wake-up took 4.7 s in task 3.7).
