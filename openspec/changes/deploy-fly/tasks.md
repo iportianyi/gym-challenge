@@ -6,16 +6,22 @@ result. `fly …` below means `docker compose --profile deploy run --rm fly …`
 
 ## 1. Scenario checks first
 
-- [ ] 1.1 Write `scripts/hosting-check.mjs`: one check per agent-checkable scenario of the `hosting` spec — health over
+- [x] 1.1 Write `scripts/hosting-check.mjs`: one check per agent-checkable scenario of the `hosting` spec — health over
   HTTPS, the plain-HTTP redirect, the web app at the root, the refused development login (initData from
   `dev-login-link.mjs` logic, signed with `local-dev-token`), and `fly.toml` (no `TELEGRAM_BOT_TOKEN`,
   `[env].TELEGRAM_BOT_USERNAME` = `gym_challenge_iport_bot`); prints one line per check and exits non-zero on any
   failure. Node built-ins only (no new dependency); the initData signing moves from `dev-login-link.mjs` into a module
   both scripts import (the dev link's output unchanged, checked by comparing it before and after for a fixed
   `auth_date`); `--base <url>` overrides the default `https://gym-challenge.fly.dev`; `fly.toml` is read by matching
-  lines, no TOML parser. Run by hand after a deploy, not in `make check`
-- [ ] 1.2 Run it now and quote the failing lines (no `fly.toml`, the address does not answer); commit on its own
-  (`test: hosting scenario checks for the Fly.io app`)
+  lines, no TOML parser. Run by hand after a deploy, not in `make check` — signing in
+  `scripts/telegram-init-data.mjs`; `dev-login-link.mjs` output byte-identical before and after for two calls with
+  `Date.now` fixed at 1794000000000 (`cmp`: IDENTICAL). Sanity run against the local app (`--base
+  http://localhost:8000`, `local-dev-token`): `ok` health and web app, `FAIL` redirect (`status 200`) and development
+  login (`status 200`, i.e. the signature is valid where the token matches), as expected locally
+- [x] 1.2 Run it now and quote the failing lines (no `fly.toml`, the address does not answer); commit on its own
+  (`test: hosting scenario checks for the Fly.io app`) — `FAIL health over HTTPS: ENOTFOUND`, the same `ENOTFOUND`
+  for the redirect, the web app and the development login, `FAIL fly.toml names no token: ENOENT`;
+  `hosting-check: 5 of 5 failed (https://gym-challenge.fly.dev)`, exit 1
 - [ ] 1.3 The `.env` scenario: build a throwaway Dockerfile from stdin (`FROM busybox`, `COPY . /ctx`,
   `RUN ls -a /ctx`) with the repository context and quote whether any name starts with `.env` — expected to fail now
 

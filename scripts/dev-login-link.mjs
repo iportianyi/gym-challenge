@@ -7,10 +7,9 @@
 //
 // --start opens the app as Telegram does from an invite link t.me/<bot>?startapp=<token> (game-invites, design D10):
 // the token is signed inside initData as start_param and repeated in the query as tgWebAppStartParam.
-import { createHmac } from "node:crypto";
 import { parseArgs } from "node:util";
 
-const LOCAL_TOKEN = "local-dev-token";
+import { userInitData } from "./telegram-init-data.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -33,19 +32,8 @@ if (values.start !== undefined && !/^[A-Za-z0-9_-]{1,512}$/.test(values.start)) 
   process.exit(2);
 }
 
-// Telegram's algorithm: hash = hex HMAC-SHA-256(data-check-string) keyed with HMAC-SHA-256("WebAppData", token).
-const fields = {
-  auth_date: String(Math.floor(Date.now() / 1000)),
-  user: JSON.stringify({ id: Number(values.id), first_name: values.name }),
-  ...(values.start !== undefined && { start_param: values.start }),
-};
-const dataCheckString = Object.keys(fields)
-  .sort()
-  .map((key) => `${key}=${fields[key]}`)
-  .join("\n");
-const secret = createHmac("sha256", "WebAppData").update(LOCAL_TOKEN).digest();
-const hash = createHmac("sha256", secret).update(dataCheckString).digest("hex");
-const initData = new URLSearchParams({ ...fields, hash }).toString();
+// Signed with LOCAL_TOKEN (telegram-init-data.mjs), shared with hosting-check.mjs.
+const initData = userInitData({ id: values.id, name: values.name, start: values.start });
 
 const query = values.start !== undefined ? `?tgWebAppStartParam=${values.start}` : "";
 console.log(
