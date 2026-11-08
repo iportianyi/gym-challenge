@@ -92,3 +92,14 @@ for line breaks; screenshots go to `.playwright-mcp/`. The human looks once on t
   sides fail together (D3).
 - [The wording is the agent's proposal] → the human may change any text in review; only the spec delta and the
   tests then change, not the approach.
+
+## Implementation notes
+
+- The rule line is `Ближча здогадка отримує бал. Гра — до 5 балів.` with a no-break space before the dash: at
+  320 px the dash wrapped to the start of a line (task 3.2). Not in D4, which covered penalties only; the spec text
+  is unchanged, since the text matchers collapse U+00A0 into a space.
+- D5's grid areas need one class per score part (`me`, `mine`, `theirs`, `other`, and `grid-area` on the colon);
+  the DOM order and the region's text are unchanged.
+- At 320×640 with the card shown, the guess field and `Далі` start at y 848, below the first screen (task 3.2), so
+  the player scrolls to them; this is the Risks entry on the card pushing the field lower. The human looks at it on
+  the iPhone in task 3.4, which was moved after the review on the human's request.

@@ -63,7 +63,7 @@ dependency or harness changes. Vitest runs as
   rule line's `— до` wrapped to a line start, so it got a no-break space before the dash. Console: only the known
   `favicon.ico` 404 (audit 15). Screenshots `clarify-round-320.png`, `clarify-invite-320.png`; the app was not
   running before and was removed after; the test players and games stay in the local `gym-data` volume
-- [ ] 3.3 Commit (`feat(web): score centred with names under it, invite buttons on their own lines`)
+- [x] 3.3 Commit (`feat(web): score centred with names under it, invite buttons on their own lines`)
 - [ ] 3.4 Ask the human to look at a round result, an exact hit, the score and the invite screen on the iPhone through
   the dev bot, and record the answer here
 
