@@ -7,7 +7,8 @@ context: |
   the closer guess scores a point, first to 5 wins. Product spec and game rules: docs/spec.md (source of truth for "why").
   Stack: backend FastAPI + SQLModel + SQLite + Alembic, managed by uv, checked by ruff, ty and pytest;
   frontend React + TypeScript + Vite, managed by pnpm, tested by Vitest. FastAPI serves the built frontend
-  (app.frontend()) and the API from one origin. Local run only, via Docker Compose; no hosting.
+  (app.frontend()) and the API from one origin. Local run via Docker Compose; the game is hosted on Fly.io
+  (one Machine, SQLite on a volume, fly.toml, docs/fly-deploy.md), flyctl only through the Compose service `fly`.
   Game rules live in a pure Python module (no DB, no HTTP) with pytest tests beside it.
   UI copy is Ukrainian; code, specs, tasks and commit messages are English.
   OpenSpec CLI: only as `pnpm exec openspec` (pinned devDependency), never a bare `openspec`.

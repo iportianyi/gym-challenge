@@ -12,6 +12,9 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
   `docs/telegram-dev.md`). `node scripts/dev-login-link.mjs --id 1001 --name Іван` — вхід без Telegram
   (лише з `local-dev-token`, тобто без токена в `.env`); друга вкладка з іншим `--id` — другий гравець;
   `--start <токен>` — відкрити як за посиланням-запрошенням.
+- Гра на Fly.io — https://gym-challenge.fly.dev, кроки й відкат — `docs/fly-deploy.md`. `flyctl` лише через
+  `docker compose --profile deploy run --rm fly <команда>`; деплой — `fly deploy --remote-only --app gym-challenge`,
+  після нього `node scripts/hosting-check.mjs` (успіх — `hosting-check: OK (…)`). Токен бота гри — лише у `fly secrets`.
 - `make check` — **definition of done**: ruff, ty, pytest, ESLint, tsc, Vitest у Docker + `pnpm spec:check` на хості;
   успіх закінчується рядком `check: OK (backend, frontend, spec, secrets)`. Перед «готово» — запустити й процитувати.
 - Інструменти бекенду/фронтенду на хості не встановлені: лише через `make check` або
@@ -54,7 +57,8 @@ React + TypeScript + Vite (pnpm, Vitest) · локальний запуск че
 
 ## Межі
 
-- Питати перед: додаванням залежності, зміною конфігів збірки, `.claude/`, `.mcp.json`, CI, `git push`.
+- Питати перед: додаванням залежності, зміною конфігів збірки, `.claude/`, `.mcp.json`, CI, `git push`,
+  `fly deploy` і будь-якою командою `fly`, що створює, змінює, зупиняє чи видаляє ресурси (вони платні й це production).
 - Ніколи: `.env*` (блокує hook), `git push --force`, `rm -rf`, переписування закоміченої історії.
 - `docker compose config` — лише з `--quiet`: без нього друкує підставлені значення з `.env`.
 
