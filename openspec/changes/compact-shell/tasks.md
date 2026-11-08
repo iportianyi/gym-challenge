@@ -64,6 +64,8 @@ vitest run`.
 
 ## 4. Review and check
 
-- [ ] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/compact-shell.md`
-- [ ] 4.2 Run the project check command and quote its summary line
+- [x] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/compact-shell.md` — first round CONDITIONAL (no FAIL; finding 1 fixed in code by the human's
+  choice, tasks 2.6–2.8; finding 3 fixed; finding 2 left as design D5 decides), second round ACCEPT, A–F PASS
+- [x] 4.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 136 passed, Vitest 127 passed), on the HEAD the second review saw
