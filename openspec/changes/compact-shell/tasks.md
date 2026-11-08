@@ -44,9 +44,10 @@ vitest run`.
   expected `GET /api/me` 404 of a new player
 - [x] 2.5 Commit (`feat(web): one-line header with the player's name, New game above the list, page icon`)
 
-- [ ] 2.6 Review finding 1 (`docs/reviews/compact-shell.md`), the human chose to fix the code: `Invites.test.tsx`
+- [x] 2.6 Review finding 1 (`docs/reviews/compact-shell.md`), the human chose to fix the code: `Invites.test.tsx`
   tests for "The header on an invite" and "The header on a link that cannot be joined"; run Vitest, quote the
-  failing lines; commit the failing tests on their own
+  failing lines; commit the failing tests on their own — `Tests  2 failed | 125 passed (127)`, both
+  `AssertionError: expected 'Gym Challenge' to be 'Gym ChallengeТи граєш як Тренер'`
 - [ ] 2.7 `PlayerSession.tsx`: the header gets the name whenever the session holds a player (`invited`, `joining`,
   `join-failed`, `ready`), not only in `ready`. Verify every Vitest test passes, ESLint and tsc clean; commit
   (`fix(web): name in the header on the invite screen and its messages`)

@@ -324,6 +324,27 @@ describe("invites: A link that cannot be joined says why", () => {
   });
 });
 
+// compact-shell (review finding 1): a known player's name stands in the header on the invite screen and its messages.
+describe("web-shell: the header names a known player on an invite", () => {
+  it("the header on an invite", async () => {
+    stubApi();
+    launchWith("/", T2S);
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Гра: Присідання" });
+    expect(document.querySelector("header")?.textContent).toBe("Gym ChallengeТи граєш як Тренер");
+  });
+
+  it("the header on a link that cannot be joined", async () => {
+    stubApi({ preview: [409, { detail: "Invite already used" }] });
+    launchWith("/", T2S);
+    render(<App />);
+
+    await screen.findByText("Це запрошення вже прийняв інший гравець.");
+    expect(document.querySelector("header")?.textContent).toBe("Gym ChallengeТи граєш як Тренер");
+  });
+});
+
 describe("invites: The waiting game's screen gives the organizer the link", () => {
   function stubClipboard(writeText: (text: string) => Promise<void>) {
     const spy = vi.fn(writeText);
