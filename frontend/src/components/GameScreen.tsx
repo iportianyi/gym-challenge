@@ -63,12 +63,13 @@ export default function GameScreen({ initData, playerId, onLoginRefused }: Props
         </p>
       )}
 
+      {/* Reading order stays "Ти 3 : 1 <name>"; the grid puts each name under its points (D5). */}
       <section aria-label="Рахунок" className={styles.board}>
-        <span className={styles.side}>Ти</span>{" "}
-        <span className={`${styles.points} digits`}>{view.myPoints}</span>{" "}
+        <span className={`${styles.side} ${styles.me}`}>Ти</span>{" "}
+        <span className={`${styles.points} ${styles.mine} digits`}>{view.myPoints}</span>{" "}
         <span className={styles.colon}>:</span>{" "}
-        <span className={`${styles.points} digits`}>{view.theirPoints}</span>{" "}
-        <span className={styles.side}>{view.otherName}</span>
+        <span className={`${styles.points} ${styles.theirs} digits`}>{view.theirPoints}</span>{" "}
+        <span className={`${styles.side} ${styles.other}`}>{view.otherName}</span>
       </section>
 
       {view.end && (
@@ -126,7 +127,8 @@ function CurrentRound({ phase, otherName, onGuess, onActual }: RoundProps) {
         <>
           <div className={styles.explain}>
             <p className={styles.question}>Скільки людей зараз у залі?</p>
-            <p className={styles.hint}>Ближча здогадка отримує бал. Гра — до 5 балів.</p>
+            {/* A no-break space keeps the dash off the start of a line on a narrow phone. */}
+            <p className={styles.hint}>{"Ближча здогадка отримує бал. Гра — до 5 балів."}</p>
           </div>
           {phase.otherGuessed && <p className={styles.hint}>Здогадка суперника вже є</p>}
           <NumberEntry
@@ -231,10 +233,10 @@ function WaitingForOpponent({ inviteUrl }: { inviteUrl: string }) {
   return (
     <section aria-labelledby="invite-heading" className={styles.invite}>
       <h3 id="invite-heading" className={styles.subheading}>
-        Чекаємо суперника. Надішли йому посилання.
+        Чекаємо суперника. Надішли посилання на гру.
       </h3>
       <p className={styles.inviteUrl}>{inviteUrl}</p>
-      <div className={styles.actions}>
+      <div className={styles.inviteActions}>
         <button type="button" className={ui.secondary} onClick={copy}>
           Копіювати посилання
         </button>

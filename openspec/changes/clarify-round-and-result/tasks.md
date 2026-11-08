@@ -37,19 +37,32 @@ dependency or harness changes. Vitest runs as
   penalty first (D2); exact-guess accent (D3); the explaining texts in the guess and actual-count phases; history item
   in its three or four lines. Verify every test in `GameScreen.test.tsx` passes — all pass; Vitest
   `Tests  4 failed | 104 passed (108)`, the 4 being the invite text of task 3.1; ESLint and tsc clean
-- [ ] 2.3 Commit (`feat(web): round result above the next round, compact history, exact hit explained`)
+- [x] 2.3 Commit (`feat(web): round result above the next round, compact history, exact hit explained`)
 
 ## 3. Score and invite layout
 
-- [ ] 3.1 `GameScreen.module.css` (+ markup only if the grid areas need it): score as the 3-column grid with names
+- [x] 3.1 `GameScreen.module.css` (+ markup only if the grid areas need it): score as the 3-column grid with names
   under the digits and `overflow-wrap: break-word` (D5); invite panel with its own one-column button grid and the new
   heading text (D6). Verify `GameScreen.test.tsx` and `Invites.test.tsx` pass, the score region's text unchanged
-- [ ] 3.2 Playwright on `docker compose up --build` via the dev login link (second player named
+  — `Tests  108 passed (108)`, the two score-region scenarios included; the markup got one grid-area class per score
+  part, DOM order kept; ESLint and tsc clean
+- [x] 3.2 Playwright on `docker compose up --build` via the dev login link (second player named
   `Олександра-Вікторія` in the name step): assert the bounding-box and line-break conditions of the three scenarios of
   "The score fits a phone screen" (320×640 and 375×667) and of "Buttons fit a phone screen" (320×640); see the card
   above `Раунд N` with the field still reachable at 320×640; quote the measured numbers and save screenshots in
   `.playwright-mcp/`. If `.env` holds the real bot token, run with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell
-  and leave the app as it was found
+  and leave the app as it was found — seeded through the API with the dev-signed initData: players 900201 `Ти-тест`
+  and 900202 `Олександра-Вікторія`, game 9 at `3 : 1` (round 4 an exact hit by the opponent, doubled `× 20`), waiting
+  game 10. At 320×640 the board spans x 16–289 (middle 152.5) and the colon 148.6–156.4 (middle 152.5); the name lays
+  out as `Олександра-` / `Вікторія`; `Ти` top 299.7 and the name top 287.7 are below the digits' bottom 280.1. At
+  375×667 board middle 180, colon middle 180, `Ти` middle 96.5 (left half), the name 263.5 (right half). Invite at
+  320×640: panel content x 33.6–290.4 (after the 4 px amber edge), `Копіювати посилання` y 406.2–454.2 and
+  `Надіслати в Telegram` y 462.2–510.2, both x 33.6–290.4 and 48 px tall. No horizontal scroll. The card
+  `Підсумок раунду 4` (top 382) comes before `Раунд 5` (688), exact line and penalty in amber; at 320×640 the field
+  and `Далі` sit at y 848–896, below the first screen, reached by scrolling (the trade-off in design Risks). The
+  rule line's `— до` wrapped to a line start, so it got a no-break space before the dash. Console: only the known
+  `favicon.ico` 404 (audit 15). Screenshots `clarify-round-320.png`, `clarify-invite-320.png`; the app was not
+  running before and was removed after; the test players and games stay in the local `gym-data` volume
 - [ ] 3.3 Commit (`feat(web): score centred with names under it, invite buttons on their own lines`)
 - [ ] 3.4 Ask the human to look at a round result, an exact hit, the score and the invite screen on the iPhone through
   the dev bot, and record the answer here
