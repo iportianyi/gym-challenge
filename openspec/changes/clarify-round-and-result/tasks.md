@@ -1,0 +1,52 @@
+# Tasks
+
+Scope: frontend only (`view.ts`, `GameScreen.tsx`, `GameScreen.module.css`, their tests); no backend, API,
+dependency or harness changes. Vitest runs as
+`env UID=$(id -u) GID=$(id -g) docker compose --profile check run --rm --no-deps frontend-check vitest run`.
+
+## 1. Red scenario tests
+
+- [ ] 1.1 `frontend/src/GameScreen.test.tsx`: one test per Vitest-checkable scenario of the game-screen delta — the
+  new scenarios ("Card comes before the next round", "Exact guess in the card", "The card's round is not repeated in
+  the history", "One settled round shown in the card has no history", all of "The round says what is guessed" and
+  "A penalty keeps its reps with the exercise"), and the scenarios whose accepted text or data changed ("Two rounds,
+  newest first", all of "A doubled penalty is marked") rewritten in place to the delta, same game data and roles.
+  Reading order via `compareDocumentPosition`; exact `textContent` for U+00A0. The three "score fits a phone"
+  scenarios are covered by task 3.2 (design D7)
+- [ ] 1.2 `frontend/src/Invites.test.tsx`: the four scenarios that name `Чекаємо суперника. Надішли йому посилання.`
+  rewritten to `Чекаємо суперника. Надішли посилання на гру.`; "Buttons fit a phone screen" is covered by task 3.2
+- [ ] 1.3 Run Vitest and quote the failing lines and the `Tests … failed | … passed` summary; every test outside
+  1.1–1.2 still passes
+- [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for the round result, exact hit and invite copy`)
+
+## 2. Round view and screen
+
+- [ ] 2.1 `frontend/src/game/view.ts`: split the round view into card and history item, history without the card's
+  round (design D1); exact guess as `· точно` / `(точно)` and the mark ` (<base> ×2 за точне влучання)` with a named
+  multiplier constant pointing to `backend/app/rules.py` (D3); no-break spaces in `penaltyText` (D4). Update
+  `frontend/src/game/view.test.ts` to the new shapes and texts, keeping every case's game data; verify it passes
+- [ ] 2.2 `frontend/src/components/GameScreen.tsx` + `GameScreen.module.css`: card above `CurrentRound`, outcome and
+  penalty first (D2); exact-guess accent (D3); the explaining texts in the guess and actual-count phases; history item
+  in its three or four lines. Verify every test in `GameScreen.test.tsx` passes
+- [ ] 2.3 Commit (`feat(web): round result above the next round, compact history, exact hit explained`)
+
+## 3. Score and invite layout
+
+- [ ] 3.1 `GameScreen.module.css` (+ markup only if the grid areas need it): score as the 3-column grid with names
+  under the digits and `overflow-wrap: break-word` (D5); invite panel with its own one-column button grid and the new
+  heading text (D6). Verify `GameScreen.test.tsx` and `Invites.test.tsx` pass, the score region's text unchanged
+- [ ] 3.2 Playwright on `docker compose up --build` via the dev login link (second player named
+  `Олександра-Вікторія` in the name step): assert the bounding-box and line-break conditions of the three scenarios of
+  "The score fits a phone screen" (320×640 and 375×667) and of "Buttons fit a phone screen" (320×640); see the card
+  above `Раунд N` with the field still reachable at 320×640; quote the measured numbers and save screenshots in
+  `.playwright-mcp/`. If `.env` holds the real bot token, run with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell
+  and leave the app as it was found
+- [ ] 3.3 Commit (`feat(web): score centred with names under it, invite buttons on their own lines`)
+- [ ] 3.4 Ask the human to look at a round result, an exact hit, the score and the invite screen on the iPhone through
+  the dev bot, and record the answer here
+
+## 4. Review and check
+
+- [ ] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/clarify-round-and-result.md`
+- [ ] 4.2 Run the project check command and quote its summary line
