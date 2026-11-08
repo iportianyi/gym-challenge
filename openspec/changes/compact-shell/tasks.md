@@ -46,9 +46,10 @@ vitest run`.
 
 ## 3. Hosted check
 
-- [ ] 3.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
+- [x] 3.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
   `node scripts/hosting-check.mjs` and quote its last line; `curl -sI https://gym-challenge.fly.dev/favicon.svg`
-  answers `200` with `image/svg+xml`
+  answers `200` with `image/svg+xml` — the human said yes; release 5, `started`, `1 total, 1 passing`;
+  `hosting-check: OK (https://gym-challenge.fly.dev)`; `HTTP/2 200`, `content-type: image/svg+xml`
 
 ## 4. Review and check
 
