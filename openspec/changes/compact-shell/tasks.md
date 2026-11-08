@@ -30,8 +30,8 @@ vitest run`.
 - [x] 2.3 `frontend/public/favicon.svg` and the link in `index.html` (design D4). Verify every Vitest test passes,
   ESLint and tsc clean — `Tests  125 passed (125)`; ESLint and tsc clean
 - [x] 2.4 Playwright on `docker compose up --build` (with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell) and a
-  dev login link: at 320×640 as `Олександра-Анастасія Вишнева-Подільська` — header one line (same top for heading
-  and name), name cut with `…`, no horizontal scroll; `Нова гра` under `Мої ігри`; the name form, a game screen and
+  dev login link: at 320×640 as `Олександра-Анастасія Вишнева-Подільська` — header one line (the name within the
+  heading's top and bottom), name cut with `…`, no horizontal scroll; `Нова гра` under `Мої ігри`; the name form, a game screen and
   the new-game form under the one-line header; `GET /favicon.svg` `200` `image/svg+xml` and no `/favicon.ico` request
   in the network log; screenshots in `.playwright-mcp/`, findings quoted here — player 900501
   `Олександра-Анастасія Вишнева-Подільська`. First run: horizontal scroll (page 381 px), the grid column grew to the
@@ -43,6 +43,15 @@ vitest run`.
   `GET /favicon.svg` `200`, `curl -sI` `content-type: image/svg+xml`, no `/favicon.ico` request; console: only the
   expected `GET /api/me` 404 of a new player
 - [x] 2.5 Commit (`feat(web): one-line header with the player's name, New game above the list, page icon`)
+
+- [ ] 2.6 Review finding 1 (`docs/reviews/compact-shell.md`), the human chose to fix the code: `Invites.test.tsx`
+  tests for "The header on an invite" and "The header on a link that cannot be joined"; run Vitest, quote the
+  failing lines; commit the failing tests on their own
+- [ ] 2.7 `PlayerSession.tsx`: the header gets the name whenever the session holds a player (`invited`, `joining`,
+  `join-failed`, `ready`), not only in `ready`. Verify every Vitest test passes, ESLint and tsc clean; commit
+  (`fix(web): name in the header on the invite screen and its messages`)
+- [ ] 2.8 Ask the human before a second `fly deploy`; deploy, run `node scripts/hosting-check.mjs` and quote its last
+  line
 
 ## 3. Hosted check
 

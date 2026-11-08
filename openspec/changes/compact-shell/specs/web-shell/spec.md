@@ -6,7 +6,7 @@
 The start page SHALL show the heading `Gym Challenge` as its main (level 1) heading. This text is in English by the
 product owner's choice, as an exception to the Ukrainian UI copy rule. The page SHALL NOT request `GET /api/health`
 and SHALL NOT show a server status. The heading SHALL stand in the page header, a single line above every screen;
-once the player is known, the header SHALL also show the player's name on the same line, preceded by the words
+once the player is known — on every screen, the invite screen and its messages included — the header SHALL also show the player's name on the same line, preceded by the words
 `Ти граєш як ` for screen readers only (visually hidden). On a screen 320 px wide the header SHALL stay one line:
 a name too long for it is cut with `…`.
 
@@ -37,6 +37,16 @@ a name too long for it is cut with `…`.
 #### Scenario: The header before the player is known
 - **WHEN** the app is loaded with `t1`, `GET /api/me` answers `404` and the page shows the heading `Як тебе звати?`
 - **THEN** the text content of the page header is `Gym Challenge`
+
+#### Scenario: The header on an invite
+- **WHEN** registered player `2` (`Тренер`) opens the app from an invite link and the page shows the heading
+  `Гра: Присідання` of the invite screen
+- **THEN** the text content of the page header is `Gym ChallengeТи граєш як Тренер`
+
+#### Scenario: The header on a link that cannot be joined
+- **WHEN** registered player `2` (`Тренер`) opens the app from an invite link whose preview answers `409` and the page
+  shows `Це запрошення вже прийняв інший гравець.`
+- **THEN** the text content of the page header is `Gym ChallengeТи граєш як Тренер`
 
 #### Scenario: The header is one line on a phone
 - **WHEN** the app is opened at 320×640 px as a player named `Олександра-Анастасія Вишнева-Подільська`
