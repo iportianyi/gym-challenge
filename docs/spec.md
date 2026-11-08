@@ -1,6 +1,8 @@
 # gym-challenge — специфікація
 
-> Статус: **v2.4** (2026-10-17). Зафіксовано ідею, правила гри, платформу, стек і ігровий флоу.
+> Статус: **v2.5** (2026-11-08). Зафіксовано ідею, правила гри, платформу, стек і ігровий флоу.
+> v2.5: гра розгорнута на Fly.io (зміна `deploy-fly`): `https://gym-challenge.fly.dev`, регіон `fra` (Варшави у Fly
+> більше немає), бот гри `gym_challenge_iport_bot`, `flyctl` — через Docker; інструкція — `docs/fly-deploy.md`.
 > v2.4: рішення зміни `game-invites` — посилання на Main Mini App зі `startapp`, копіювання й «Надіслати в Telegram»
 > без скрипта Telegram, токен на грі без строку дії, що бачить той, хто відкрив посилання (див. «Вирішено»).
 > v2.3: «організатор» тепер і в коді, API та базі (`organizer`, `game.organizer_id`; зміна `rename-creator-to-organizer`).
@@ -56,7 +58,7 @@
 | Контракт API | у MVP TS-типи фронтенду **написані вручну** (`frontend/src/api/`) за схемами бекенду; генерація з OpenAPI-схеми FastAPI — наступний крок | генерація потребує нової залежності, тому її відклали (`add-game-setup`, design); поки розбіжність ловлять Vitest-сценарії, що перевіряють точні тіла запитів |
 | Структура | монорепо `backend/` + `frontend/`; FastAPI роздає зібраний фронтенд (`app.frontend()`) і API з одного origin | без CORS і cross-site cookie; простіше для майбутнього Mini App |
 | Перевірка | одна команда, що запускає ruff, ty, pytest, typecheck, lint і vitest | |
-| Запуск | локально — **Docker Compose** (Dockerfile для сервісів, база SQLite у volume); гра — **Fly.io**: той самий Dockerfile, одна Machine, SQLite на Fly Volume, HTTPS на `*.fly.dev`; розробка в Telegram — тунель до ноутбука | Compose — звичний інструмент людини; Fly.io — найдешевший варіант без адміністрування сервера, що зберігає SQLite і Dockerfile (VPS з Caddy, Render і Vercel розглянуто, див. «Вирішено») |
+| Запуск | локально — **Docker Compose** (Dockerfile для сервісів, база SQLite у volume); гра — **Fly.io** (`https://gym-challenge.fly.dev`, `docs/fly-deploy.md`): той самий Dockerfile, одна Machine, SQLite на Fly Volume, HTTPS на `*.fly.dev`; розробка в Telegram — тунель до ноутбука | Compose — звичний інструмент людини; Fly.io — найдешевший варіант без адміністрування сервера, що зберігає SQLite і Dockerfile (VPS з Caddy, Render і Vercel розглянуто, див. «Вирішено») |
 
 ## Терміни
 
@@ -170,7 +172,7 @@
 для бота розробки (ngrok зі статичним доменом, див. рішення 2026-10-16 нижче), запасний
 варіант — тестове середовище Telegram, де дозволено http. Відкинуто: VPS з Compose і Caddy (дорожче й
 адміністрування сервера), Render (дорожче, без диска на безкоштовному тарифі), Vercel (немає диска — довелося б
-одразу переходити на Postgres). Хостинг — окрема OpenSpec-зміна.
+одразу переходити на Postgres). Хостинг — окрема OpenSpec-зміна (зроблено в `deploy-fly`, 2026-11-08).
 2026-10-16, людина (зміна `telegram-auth`, v2.2):
 ~~тунель для бота розробки~~ → **ngrok** з безкоштовним статичним доменом, сервіс Compose у профілі `tunnel`:
 адреса стабільна, у @BotFather задається один раз і працює пряме посилання `t.me`. Відкинуто cloudflared quick

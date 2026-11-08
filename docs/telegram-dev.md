@@ -4,6 +4,9 @@
 так — зміни `telegram-auth` (design D8–D9) і `game-invites` (design D6, D10); заархівовані — в
 `openspec/changes/archive/`.
 
+Гра для справжніх ігор — на Fly.io з ботом `gym_challenge_iport_bot`: [`fly-deploy.md`](fly-deploy.md). Цей документ — лише
+про локальну розробку й бот розробки.
+
 Сервер довіряє лише `initData`, підписаним токеном бота, з яким його запущено (`TELEGRAM_BOT_TOKEN`). Обходу перевірки
 в коді немає ні для localhost, ні для розробки.
 

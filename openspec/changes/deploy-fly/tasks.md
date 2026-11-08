@@ -69,22 +69,28 @@ result. `fly …` below means `docker compose --profile deploy run --rm fly …`
 - [x] 3.7 "Idle Machine wakes up": `fly machine stop`, check `fly machine list` shows `stopped`, request
   `/api/health`, quote `200` and the state `started` — `857709db4e6228 has been successfully stopped`; states before
   `['stopped']`, health `200 in 4.70s`, after `['started']`
-- [ ] 3.8 Commit the region and any D4 change (`chore(deploy): first deploy to Fly.io in <region>`)
+- [x] 3.8 Commit the region and any D4 change (`chore(deploy): first deploy to Fly.io in <region>`)
 
 ## 4. Telegram
 
-- [ ] 4.1 **human** — in @BotFather, `gym_challenge_iport_bot` → Bot Settings → Configure Mini App → Enable Mini App
-  with `https://gym-challenge.fly.dev` (and Menu Button with the same URL)
-- [ ] 4.2 **human** — on the phone: "Opened from the game bot", "Invite names the game bot", create a game, then the
+- [x] 4.1 **human** — in @BotFather, `gym_challenge_iport_bot` → Bot Settings → Configure Mini App → Enable Mini App
+  with `https://gym-challenge.fly.dev` (and Menu Button with the same URL) — done by the human on 2026-11-08
+- [x] 4.2 **human** — on the phone: "Opened from the game bot", "Invite names the game bot", create a game, then the
   agent runs `fly deploy --remote-only` again and the human checks "Game still there after a deploy"; then
-  `fly machine stop` and "Game still there after a stop". Record each answer here
+  `fly machine stop` and "Game still there after a stop". Record each answer here — 2026-11-08, the human:
+  "Opened from the game bot": «показав застосунок «Як тебе звати?» - ок»; "Invite names the game bot": «посилання
+  теж ок»; after the second deploy (version 2, image `deployment-01M6Y7S1WF45CRY5HPA5HAT9ZE`, `hosting-check: OK`):
+  «гра на місці»; after `fly machine stop` (state `['stopped']`): «гра на місці, все ок»
 
 ## 5. Docs and harness
 
-- [ ] 5.1 `docs/fly-deploy.md` in Ukrainian: one-time setup (3.1–3.4, 4.1), every deploy, checks after it
+- [x] 5.1 `docs/fly-deploy.md` in Ukrainian: one-time setup (3.1–3.4, 4.1), every deploy, checks after it
   (`hosting-check.mjs`), rollback (design, Migration Plan), where the token lives; `docs/telegram-dev.md` links to it;
   `docs/spec.md` "Запуск" says the game is hosted and the version note names this change. Verify every command in the
-  doc was run in this change as written
+  doc was run in this change as written — all were, except the two rollback commands (`fly deploy --image`, a volume
+  from `--snapshot-id`), which would change production and are marked in the doc as not yet run; `fly releases
+  --image` lists v1 and v2, and `fly volumes snapshots list` shows none yet (the first daily one is due). `docs/spec.md`
+  v2.5
 - [ ] 5.2 Commit (`docs: deploying the game to Fly.io`)
 - [ ] 5.3 Harness, shown as a diff and committed only after the human's yes, on its own: `CLAUDE.md` gets the deploy
   commands, `openspec/config.yaml` context drops "Local run only … no hosting"
