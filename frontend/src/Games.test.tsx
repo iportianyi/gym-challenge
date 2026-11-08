@@ -146,6 +146,34 @@ describe("games: The app lists my games", () => {
   });
 });
 
+// compact-shell: `Нова гра` stands right under the heading, before the list or the empty note.
+const follows = (first: Node, second: Node) =>
+  (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+
+describe("games: The app lists my games, New game first", () => {
+  it("new game comes before the list", async () => {
+    stubApi({ games: Array.from({ length: 8 }, (_, index) => ({ ...GAME, id: index + 1 })) });
+    openInTelegram("/", 1);
+    render(<App />);
+
+    const list = await screen.findByRole("list", { name: "Мої ігри" });
+    expect(within(list).getAllByRole("listitem")).toHaveLength(8);
+    const heading = screen.getByRole("heading", { name: "Мої ігри" });
+    const button = screen.getByRole("button", { name: "Нова гра" });
+    expect(follows(heading, button)).toBe(true);
+    expect(follows(button, list)).toBe(true);
+  });
+
+  it("new game comes before the empty note", async () => {
+    stubApi({ games: [] });
+    openInTelegram("/", 1);
+    render(<App />);
+
+    const note = await screen.findByText("Ще немає ігор. Почни першу.");
+    expect(follows(screen.getByRole("button", { name: "Нова гра" }), note)).toBe(true);
+  });
+});
+
 describe("games: The app creates a game with the chosen opponent", () => {
   it("successful create sends the body and opens the new game", async () => {
     const created = { ...GAME, id: 7 };

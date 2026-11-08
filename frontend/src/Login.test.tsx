@@ -119,7 +119,8 @@ describe("players: The first login asks for the player's name", () => {
     expect((await nameField()).value).toBe("Іван");
     fireEvent.click(screen.getByRole("button", { name: "Почати" }));
 
-    expect(await screen.findByText("Ти граєш як Іван")).toBeTruthy();
+    // compact-shell: the name stands in the page header, not as a visible "Ти граєш як <name>".
+    await waitFor(() => expect(document.querySelector("header")?.textContent).toContain("Іван"));
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
     const [post] = callsTo(calls, "POST", "/api/me");
     expect(post.headers.get("Authorization")).toBe(tma(1));
@@ -169,7 +170,7 @@ describe("players: A known player goes straight to their games", () => {
     openInTelegram("/", 1);
     render(<App />);
 
-    expect(await screen.findByText("Ти граєш як Клієнт")).toBeTruthy();
+    await waitFor(() => expect(document.querySelector("header")?.textContent).toContain("Клієнт"));
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
     expect(screen.queryByLabelText("Твоє ім'я")).toBeNull();
     expect(screen.queryByRole("button", { name: "Змінити гравця" })).toBeNull();

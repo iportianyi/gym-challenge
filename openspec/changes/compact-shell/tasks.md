@@ -6,15 +6,20 @@ vitest run`.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/App.test.tsx` (or `Login.test.tsx`, where the session tests live): "The header names the
+- [x] 1.1 `frontend/src/App.test.tsx` (or `Login.test.tsx`, where the session tests live): "The header names the
   player" and "The header before the player is known" (design D5); the existing web-shell greeting tests stay
-- [ ] 1.2 `frontend/src/Login.test.tsx`: "Confirm the Telegram name" and "Returning player" rewritten in place to the
+- [x] 1.2 `frontend/src/Login.test.tsx`: "Confirm the Telegram name" and "Returning player" rewritten in place to the
   delta (the name in the page header instead of the visible `Ти граєш як <name>`), same data
-- [ ] 1.3 `frontend/src/Games.test.tsx`: "New game comes before the list" (8 games) and "New game comes before the
+- [x] 1.3 `frontend/src/Games.test.tsx`: "New game comes before the list" (8 games) and "New game comes before the
   empty note"
-- [ ] 1.4 `frontend/src/indexHtml.test.ts`: "The icon is linked"
-- [ ] 1.5 Run Vitest, quote the failing lines and the summary; every other test still passes; ESLint and tsc clean
-- [ ] 1.6 Commit the failing tests on their own (`test: red scenarios for a one-line header, New game first and a page icon`)
+- [x] 1.4 `frontend/src/indexHtml.test.ts`: "The icon is linked"
+- [x] 1.5 Run Vitest, quote the failing lines and the summary; every other test still passes; ESLint and tsc clean —
+  `Tests  6 failed | 119 passed (125)`: "the header names the player" `Unable to find an element with the text: Клієнт`
+  (the name is outside the header); "confirm the Telegram name" `expected 'Gym Challenge' to contain 'Іван'`;
+  "returning player" `expected 'Gym Challenge' to contain 'Клієнт'`; both "new game comes before …"
+  `expected false to be true`; "links the SVG icon" `expected '<!doctype html>…' to contain '<link rel="icon" …'`.
+  "The header before the player is known" passes already: today's header holds only the heading. ESLint and tsc clean
+- [x] 1.6 Commit the failing tests on their own (`test: red scenarios for a one-line header, New game first and a page icon`)
 
 ## 2. Web app
 

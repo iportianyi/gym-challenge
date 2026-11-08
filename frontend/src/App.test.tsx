@@ -1,5 +1,5 @@
-// Page scenarios of the web-shell spec (openspec/specs/web-shell/spec.md, as changed by telegram-auth).
-import { cleanup, render, screen } from "@testing-library/react";
+// Page scenarios of the web-shell spec (openspec/specs/web-shell/spec.md, as changed by telegram-auth and compact-shell).
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -65,5 +65,35 @@ describe("Start page greets the player", () => {
     await screen.findByRole("heading", { name: "Мої ігри" });
     expect(fetchMock.mock.calls.map(([input]) => String(input))).not.toContain("/api/health");
     for (const text of STATUS_TEXTS) expect(screen.queryByText(text)).toBeNull();
+  });
+});
+
+/** The page header: the one line above every screen (compact-shell). */
+const pageHeader = () => document.querySelector("header");
+
+describe("Start page greets the player: the one-line header (compact-shell)", () => {
+  it("the header names the player", async () => {
+    stubFetch();
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Мої ігри" });
+    const header = pageHeader();
+    expect(header).not.toBeNull();
+    expect(within(header!).getByRole("heading", { level: 1, name: GREETING })).toBeTruthy();
+    expect(within(header!).getByText("Клієнт", { exact: false })).toBeTruthy();
+    expect(header!.textContent).toBe("Gym ChallengeТи граєш як Клієнт");
+    const hidden = within(header!).getByText("Ти граєш як", { exact: false });
+    expect(hidden.textContent).toBe("Ти граєш як ");
+    expect(hidden.closest(".visually-hidden")).not.toBeNull();
+  });
+
+  it("the header before the player is known", async () => {
+    stubFetch({ me: "unregistered" });
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Як тебе звати?" });
+    expect(pageHeader()?.textContent).toBe("Gym Challenge");
   });
 });
