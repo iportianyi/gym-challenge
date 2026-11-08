@@ -23,18 +23,26 @@ vitest run`.
 
 ## 2. Web app
 
-- [ ] 2.1 `.visually-hidden` in the global stylesheet; `AppHeader.tsx` with its CSS (design D2); `App.tsx` without the
+- [x] 2.1 `.visually-hidden` in the global stylesheet; `AppHeader.tsx` with its CSS (design D2); `App.tsx` without the
   header; `PlayerSession.tsx` renders `AppHeader` in every state and with the name in `ready`, without `.me`
-  (design D1). Verify the header and login tests pass
-- [ ] 2.2 `GameList.tsx`: `Нова гра` between the heading and the list or note (design D3). Verify the games tests pass
-- [ ] 2.3 `frontend/public/favicon.svg` and the link in `index.html` (design D4). Verify every Vitest test passes,
-  ESLint and tsc clean
-- [ ] 2.4 Playwright on `docker compose up --build` (with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell) and a
+  (design D1). Verify the header and login tests pass — all of `App.test.tsx` and `Login.test.tsx` pass
+- [x] 2.2 `GameList.tsx`: `Нова гра` between the heading and the list or note (design D3). Verify the games tests pass — all of `Games.test.tsx` pass
+- [x] 2.3 `frontend/public/favicon.svg` and the link in `index.html` (design D4). Verify every Vitest test passes,
+  ESLint and tsc clean — `Tests  125 passed (125)`; ESLint and tsc clean
+- [x] 2.4 Playwright on `docker compose up --build` (with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell) and a
   dev login link: at 320×640 as `Олександра-Анастасія Вишнева-Подільська` — header one line (same top for heading
   and name), name cut with `…`, no horizontal scroll; `Нова гра` under `Мої ігри`; the name form, a game screen and
   the new-game form under the one-line header; `GET /favicon.svg` `200` `image/svg+xml` and no `/favicon.ico` request
-  in the network log; screenshots in `.playwright-mcp/`, findings quoted here
-- [ ] 2.5 Commit (`feat(web): one-line header with the player's name, New game above the list, page icon`)
+  in the network log; screenshots in `.playwright-mcp/`, findings quoted here — player 900501
+  `Олександра-Анастасія Вишнева-Подільська`. First run: horizontal scroll (page 381 px), the grid column grew to the
+  whole name; fixed with `minmax(0, 1fr)` (design notes). Then at 320×640: header 23 px high, heading 16–39 px, name
+  17–37 px (on the heading's line, scenario reworded in `2a947d0`), name cut with `…` at x 304, no horizontal scroll
+  (`compact-shell-games-320.png`); `Нова гра` at y 113, right under `Мої ігри` (bottom 97); the name form
+  (`compact-shell-name-form-320.png`, header `Gym Challenge` only), the new-game form and waiting game 16
+  (`compact-shell-new-game-320.png`, `compact-shell-game-320.png`) under the one-line header. Network: five
+  `GET /favicon.svg` `200`, `curl -sI` `content-type: image/svg+xml`, no `/favicon.ico` request; console: only the
+  expected `GET /api/me` 404 of a new player
+- [x] 2.5 Commit (`feat(web): one-line header with the player's name, New game above the list, page icon`)
 
 ## 3. Hosted check
 

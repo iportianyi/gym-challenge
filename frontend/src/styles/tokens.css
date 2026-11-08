@@ -56,6 +56,16 @@ input {
   letter-spacing: 0.04em;
 }
 
+/* Read by screen readers, not shown: e.g. "Ти граєш як " before the name in the header (compact-shell). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

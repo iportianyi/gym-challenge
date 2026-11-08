@@ -1,25 +1,12 @@
-/* One phone-width column; the greeting sits above every screen (web-shell spec). */
+/* One phone-width column; the session puts the one-line header above every screen (AppHeader). */
 .page {
   box-sizing: border-box;
   display: grid;
+  /* minmax(0, …): the column stays the screen's width, so the header's one-line name is cut, not widening it. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
   max-width: 28rem;
   margin: 0 auto;
   padding-inline: 1rem;
   padding-block: 1rem 2.5rem;
 }
-
-.header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.25rem 0.75rem;
-}
-
-.title {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-

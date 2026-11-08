@@ -10,9 +10,6 @@ export default function App() {
   const [{ initData, startParam }] = useState(takeInitData);
   return (
     <main className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Gym Challenge</h1>
-      </header>
       {/* The router lives here, not in main.tsx, so tests choose the address with history.replaceState (D1). */}
       <BrowserRouter>
         <PlayerSession initData={initData} startParam={startParam} />

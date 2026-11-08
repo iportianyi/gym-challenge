@@ -6,6 +6,7 @@ import { LoginRefusedError } from "../api/http";
 import { previewInvite, type InvitePreview, type PreviewResult } from "../api/invites";
 import { fetchMe, type Player } from "../api/players";
 import { forgetInitData } from "../telegram";
+import AppHeader from "./AppHeader";
 import GameScreen from "./GameScreen";
 import GamesPage from "./GamesPage";
 import InviteScreen from "./InviteScreen";
@@ -40,7 +41,14 @@ const JOIN_FAILED = "Не вдалося приєднатися до гри.";
  * between if they are new (invite-preview-accept, design D2); a reload has no start parameter and reads nothing.
  */
 export default function PlayerSession({ initData, startParam }: Props) {
-  if (initData === null) return <p className={ui.note}>Відкрий Gym Challenge у Telegram</p>;
+  if (initData === null) {
+    return (
+      <>
+        <AppHeader />
+        <p className={ui.note}>Відкрий Gym Challenge у Telegram</p>
+      </>
+    );
+  }
   return <LoggedIn initData={initData} startParam={startParam} />;
 }
 
@@ -125,70 +133,80 @@ function LoggedIn({ initData, startParam }: { initData: string; startParam: stri
     return () => controller.abort();
   }, [joining, initData, navigate, refuse]);
 
-  switch (session.status) {
-    case "loading":
-    case "joining":
-      return <p className={ui.note}>Завантажуємо…</p>;
-    case "refused":
-      return <p className={ui.note}>Вхід застарів. Закрий і знову відкрий застосунок у Telegram.</p>;
-    case "unreachable":
-      return <p className={ui.note}>Не вдалося зв'язатися з сервером.</p>;
-    case "register": {
-      const { next } = session;
-      return (
-        <NameForm initData={initData} onRegistered={(player) => arrive(player, next)} onLoginRefused={refuse} />
-      );
-    }
-    case "invited": {
-      const { player, invite } = session;
-      return (
-        <InviteScreen
-          invite={invite}
-          onAccept={() => (player ? arrive(player, "join") : setSession({ status: "register", next: "join" }))}
-          onDecline={() => {
-            goOn(player);
-            navigate("/", { replace: true });
-          }}
-        />
-      );
-    }
-    case "join-failed": {
-      const { player, message } = session;
-      return (
-        <div className={styles.session}>
-          <p className={ui.note}>{message}</p>
-          <Link to="/" className={styles.back} onClick={() => goOn(player)}>
-            Мої ігри
-          </Link>
-        </div>
-      );
-    }
-  }
-
-  const { player } = session;
+  // One header line above every screen; the name only once the player is known (compact-shell, design D1).
+  const name = session.status === "ready" ? session.player.name : undefined;
   return (
-    <div className={styles.session}>
-      <p className={styles.me}>Ти граєш як {player.name}</p>
-      <Routes>
-        <Route path="/" element={<GamesPage initData={initData} playerId={player.id} onLoginRefused={refuse} />} />
-        <Route
-          path="/games/new"
-          element={
-            <NewGameForm
-              initData={initData}
-              // Replace the form in history: Back goes to the list, not to a form for a game that exists (D2).
-              onCreated={(game) => navigate(`/games/${game.id}`, { replace: true })}
-              onCancel={() => navigate("/")}
-              onLoginRefused={refuse}
-            />
-          }
-        />
-        <Route
-          path="/games/:id"
-          element={<GameScreen initData={initData} playerId={player.id} onLoginRefused={refuse} />}
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </div>
+    <>
+      <AppHeader name={name} />
+      {content()}
+    </>
   );
+
+  function content() {
+    switch (session.status) {
+      case "loading":
+      case "joining":
+        return <p className={ui.note}>Завантажуємо…</p>;
+      case "refused":
+        return <p className={ui.note}>Вхід застарів. Закрий і знову відкрий застосунок у Telegram.</p>;
+      case "unreachable":
+        return <p className={ui.note}>Не вдалося зв'язатися з сервером.</p>;
+      case "register": {
+        const { next } = session;
+        return (
+          <NameForm initData={initData} onRegistered={(player) => arrive(player, next)} onLoginRefused={refuse} />
+        );
+      }
+      case "invited": {
+        const { player, invite } = session;
+        return (
+          <InviteScreen
+            invite={invite}
+            onAccept={() => (player ? arrive(player, "join") : setSession({ status: "register", next: "join" }))}
+            onDecline={() => {
+              goOn(player);
+              navigate("/", { replace: true });
+            }}
+          />
+        );
+      }
+      case "join-failed": {
+        const { player, message } = session;
+        return (
+          <div className={styles.session}>
+            <p className={ui.note}>{message}</p>
+            <Link to="/" className={styles.back} onClick={() => goOn(player)}>
+              Мої ігри
+            </Link>
+          </div>
+        );
+      }
+    }
+
+    const { player } = session;
+    return (
+      <div className={styles.session}>
+        <Routes>
+          <Route path="/" element={<GamesPage initData={initData} playerId={player.id} onLoginRefused={refuse} />} />
+          <Route
+            path="/games/new"
+            element={
+              <NewGameForm
+                initData={initData}
+                // Replace the form in history: Back goes to the list, not to a form for a game that exists (D2).
+                onCreated={(game) => navigate(`/games/${game.id}`, { replace: true })}
+                onCancel={() => navigate("/")}
+                onLoginRefused={refuse}
+              />
+            }
+          />
+          <Route
+            path="/games/:id"
+            element={<GameScreen initData={initData} playerId={player.id} onLoginRefused={refuse} />}
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    );
+  }
 }

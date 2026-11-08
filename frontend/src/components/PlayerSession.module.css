@@ -3,11 +3,6 @@
   gap: 1.25rem;
 }
 
-.me {
-  margin: 0;
-  font-weight: 600;
-}
-
 /* "← Мої ігри" under a message, as on the game screen. */
 .back {
   justify-self: start;

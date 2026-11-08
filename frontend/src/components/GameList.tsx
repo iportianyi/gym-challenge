@@ -12,6 +12,10 @@ export default function GameList({ games, playerId, onNewGame }: Props) {
       <h2 id="games-heading" className={ui.heading}>
         Мої ігри
       </h2>
+      {/* Right under the heading, so it stays in reach however long the list grows (compact-shell, design D3). */}
+      <button type="button" className={ui.primary} onClick={onNewGame}>
+        Нова гра
+      </button>
       {games.length === 0 ? (
         <p className={ui.note}>Ще немає ігор. Почни першу.</p>
       ) : (
@@ -21,9 +25,6 @@ export default function GameList({ games, playerId, onNewGame }: Props) {
           ))}
         </ul>
       )}
-      <button type="button" className={ui.primary} onClick={onNewGame}>
-        Нова гра
-      </button>
     </section>
   );
 }
