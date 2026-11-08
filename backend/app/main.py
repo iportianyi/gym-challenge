@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from starlette.routing import Match
 
-from app.api import games, health, players
+from app.api import games, health, invites, players
 from app.db import create_db_engine, database_url_from_env, run_migrations
 
 API_METHODS = ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
@@ -78,6 +78,7 @@ def create_app(
     api.include_router(health.router)
     api.include_router(players.router)
     api.include_router(games.router)
+    api.include_router(invites.router)
     # Must stay the LAST /api route: it answers 404 JSON for any unknown /api path and any method.
     # Without it, app.frontend() would serve index.html to a browser (Accept: text/html)
     # that asks for /api/<unknown>.

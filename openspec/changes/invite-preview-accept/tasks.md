@@ -19,12 +19,14 @@ pytest`; frontend: the same with `frontend-check vitest run`.
   invite-screen tests, five of the launch flow (registered, new player, declining, a new player declines, reload) and
   all five error tests; "The opponent opens the link again" and "Launch without a start parameter" pass already, since
   they keep today's behaviour. ESLint and tsc clean
-- [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for reading an invite before accepting it`)
+- [x] 1.4 Commit the failing tests on their own (`test: red scenarios for reading an invite before accepting it`)
 
 ## 2. Backend
 
-- [ ] 2.1 `backend/app/api/invites.py` with `POST /api/invites/preview` (design D1), included in `main.py` before the
-  `/api` fallback; verify every test in `test_invites.py` and the rest of pytest pass, and ruff and ty are clean
+- [x] 2.1 `backend/app/api/invites.py` with `POST /api/invites/preview` (design D1), included in `main.py` before the
+  `/api` fallback; verify every test in `test_invites.py` and the rest of pytest pass, and ruff and ty are clean —
+  `136 passed`; ruff check, ruff format --check and ty: all clean. The route reuses `JoinRequest` (strict string
+  token) and `account_player`
 - [ ] 2.2 Commit (`feat(api): read an invite before joining its game`)
 
 ## 3. Web app
