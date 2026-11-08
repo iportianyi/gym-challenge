@@ -6,13 +6,16 @@ frontend-check vitest run`.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `frontend/src/Games.test.tsx`: one test per new scenario of "The app creates a game with the chosen
+- [x] 1.1 `frontend/src/Games.test.tsx`: one test per new scenario of "The app creates a game with the chosen
   opponent" — "The form opens with default reps" (field values `""`, `10`, `5`, `30`), "Submit keeping the defaults"
   (only `Вправа` filled; the request body equals the one in the scenario) and "Submit with changed reps"
   (`12`, `0`, `50`). The existing scenarios stay as they are
-- [ ] 1.2 Run Vitest, quote the failing lines and the summary; every other test still passes. "Submit with changed
-  reps" is expected to pass already (the form sends what is typed); the other two fail
-- [ ] 1.3 Commit the failing tests on their own (`test: red scenarios for default reps on the new-game form`)
+- [x] 1.2 Run Vitest, quote the failing lines and the summary; every other test still passes. "Submit with changed
+  reps" is expected to pass already (the form sends what is typed); the other two fail — `Tests  2 failed | 118
+  passed (120)`: "the form opens with default reps" `AssertionError: expected '' to be '10'`, "submit keeping the
+  defaults" `expected [] to have a length of 1 but got +0` (the empty required fields block the submit); "submit with
+  changed reps" passes. ESLint and tsc clean
+- [x] 1.3 Commit the failing tests on their own (`test: red scenarios for default reps on the new-game form`)
 
 ## 2. Web app
 

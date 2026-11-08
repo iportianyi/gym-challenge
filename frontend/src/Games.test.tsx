@@ -205,6 +205,59 @@ describe("games: The app creates a game with the chosen opponent", () => {
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
     expect(gameCalls(calls, "POST")).toHaveLength(0);
   });
+
+  // new-game-defaults: the reps start at 10, 5, 30; the exercise stays empty.
+  it("the form opens with default reps", async () => {
+    stubApi();
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await openForm();
+
+    expect((screen.getByLabelText("Вправа") as HTMLInputElement).value).toBe("");
+    expect((screen.getByLabelText("Повторень за першу поразку") as HTMLInputElement).value).toBe("10");
+    expect((screen.getByLabelText("Додати за кожну наступну поразку поспіль") as HTMLInputElement).value).toBe("5");
+    expect((screen.getByLabelText("Повторень за програну гру") as HTMLInputElement).value).toBe("30");
+  });
+
+  it("submit keeping the defaults", async () => {
+    const calls = stubApi({ postAnswer: [201, { ...WAITING, invite_url: "https://t.me/bot?startapp=t" }] });
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await openForm();
+    fireEvent.change(screen.getByLabelText("Вправа"), { target: { value: "Присідання" } });
+    fireEvent.click(screen.getByRole("button", { name: "Почати гру" }));
+
+    await waitFor(() => expect(gameCalls(calls, "POST")).toHaveLength(1));
+    expect(gameCalls(calls, "POST")[0].body).toEqual({
+      exercise: "Присідання",
+      base_reps: 10,
+      step_reps: 5,
+      final_reps: 30,
+    });
+  });
+
+  it("submit with changed reps", async () => {
+    const calls = stubApi({ postAnswer: [201, { ...WAITING, exercise: "Віджимання", invite_url: "https://t.me/bot?startapp=t" }] });
+    openInTelegram("/", 1);
+    render(<App />);
+
+    await openForm();
+    fireEvent.change(screen.getByLabelText("Вправа"), { target: { value: "Віджимання" } });
+    fireEvent.change(screen.getByLabelText("Повторень за першу поразку"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("Додати за кожну наступну поразку поспіль"), { target: { value: "0" } });
+    fireEvent.change(screen.getByLabelText("Повторень за програну гру"), { target: { value: "50" } });
+    fireEvent.click(screen.getByRole("button", { name: "Почати гру" }));
+
+    await waitFor(() => expect(gameCalls(calls, "POST")).toHaveLength(1));
+    expect(gameCalls(calls, "POST")[0].body).toEqual({
+      exercise: "Віджимання",
+      base_reps: 12,
+      step_reps: 0,
+      final_reps: 50,
+    });
+  });
 });
 
 describe("games: The form offers an invite and the known opponents", () => {
