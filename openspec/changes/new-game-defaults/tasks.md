@@ -32,8 +32,9 @@ frontend-check vitest run`.
 
 ## 3. Hosted check
 
-- [ ] 3.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
-  `node scripts/hosting-check.mjs` and quote its last line
+- [x] 3.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
+  `node scripts/hosting-check.mjs` and quote its last line — the human said yes; release 4, `started`,
+  `1 total, 1 passing`; `hosting-check: OK (https://gym-challenge.fly.dev)`
 
 ## 4. Review and check
 
