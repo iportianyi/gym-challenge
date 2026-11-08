@@ -3,20 +3,26 @@ import { Link, Navigate, Route, Routes, useNavigate } from "react-router";
 
 import { joinGame } from "../api/games";
 import { LoginRefusedError } from "../api/http";
+import { previewInvite, type InvitePreview, type PreviewResult } from "../api/invites";
 import { fetchMe, type Player } from "../api/players";
 import { forgetInitData } from "../telegram";
 import GameScreen from "./GameScreen";
 import GamesPage from "./GamesPage";
+import InviteScreen from "./InviteScreen";
 import NameForm from "./NameForm";
 import NewGameForm from "./NewGameForm";
 import styles from "./PlayerSession.module.css";
 import ui from "./ui.module.css";
 
+/** After the name form: join the accepted invite, or just go on. */
+type Next = "join" | "ready";
+
 type Session =
   | { status: "loading" }
-  | { status: "register" }
+  | { status: "register"; next: Next }
+  | { status: "invited"; player: Player | null; invite: InvitePreview }
   | { status: "joining"; player: Player; token: string }
-  | { status: "join-failed"; player: Player; message: string }
+  | { status: "join-failed"; player: Player | null; message: string }
   | { status: "ready"; player: Player }
   | { status: "refused" }
   | { status: "unreachable" };
@@ -30,7 +36,8 @@ const JOIN_FAILED = "Не вдалося приєднатися до гри.";
 /**
  * Who is playing in this tab, from the Telegram login (telegram-auth, design D7), and that player's screens by
  * address. The address is kept while the name form or a message shows, so the same route renders afterwards.
- * Launched by an invite link, the player first joins that game (game-invites, design D7).
+ * Launched by an invite link, the person first reads the invite and joins only after `Прийняти`, choosing a name in
+ * between if they are new (invite-preview-accept, design D2); a reload has no start parameter and reads nothing.
  */
 export default function PlayerSession({ initData, startParam }: Props) {
   if (initData === null) return <p className={ui.note}>Відкрий Gym Challenge у Telegram</p>;
@@ -47,17 +54,40 @@ function LoggedIn({ initData, startParam }: { initData: string; startParam: stri
     setSession({ status: "refused" });
   }, []);
 
-  // The player is known: join the invite this launch came with, once, or go on as usual.
+  // The player is known (at once, or after the name form): join the accepted invite, or go on as usual.
   const arrive = useCallback(
-    (player: Player) =>
-      setSession(startParam ? { status: "joining", player, token: startParam } : { status: "ready", player }),
+    (player: Player, next: Next) =>
+      setSession(
+        next === "join" && startParam ? { status: "joining", player, token: startParam } : { status: "ready", player },
+      ),
     [startParam],
   );
 
+  // GET /api/me and, for an invite launch, the preview, side by side: the preview needs no player.
   useEffect(() => {
     const controller = new AbortController();
-    fetchMe(initData, controller.signal).then(
-      (me) => (me === "not-registered" ? setSession({ status: "register" }) : arrive(me)),
+    const me = fetchMe(initData, controller.signal);
+    // A failed preview is a message, not a failed session; a refused login fails both requests alike.
+    const preview: Promise<PreviewResult | "failed" | null> = startParam
+      ? previewInvite(initData, startParam, controller.signal).catch((error: unknown) => {
+          if (error instanceof LoginRefusedError) throw error;
+          return "failed";
+        })
+      : Promise.resolve(null);
+    Promise.all([me, preview]).then(
+      ([found, invite]) => {
+        const player = found === "not-registered" ? null : found;
+        if (invite === null) {
+          return setSession(player ? { status: "ready", player } : { status: "register", next: "ready" });
+        }
+        if (typeof invite !== "object") {
+          const message = invite === "used" ? JOIN_USED : invite === "not-found" ? JOIN_NOT_FOUND : JOIN_FAILED;
+          return setSession({ status: "join-failed", player, message });
+        }
+        // Their own link, or a game they are already in: straight to it, as before.
+        if (invite.role !== "invited" && player) return arrive(player, "join");
+        setSession({ status: "invited", player, invite });
+      },
       (error: unknown) => {
         if (controller.signal.aborted) return;
         if (error instanceof LoginRefusedError) refuse();
@@ -65,7 +95,13 @@ function LoggedIn({ initData, startParam }: { initData: string; startParam: stri
       },
     );
     return () => controller.abort();
-  }, [initData, refuse, arrive]);
+  }, [initData, startParam, refuse, arrive]);
+
+  // Leaving an invite or a failed link: the list, after the name form for a new person.
+  const goOn = useCallback(
+    (player: Player | null) => setSession(player ? { status: "ready", player } : { status: "register", next: "ready" }),
+    [],
+  );
 
   const joining = session.status === "joining" ? session : null;
   useEffect(() => {
@@ -97,14 +133,31 @@ function LoggedIn({ initData, startParam }: { initData: string; startParam: stri
       return <p className={ui.note}>Вхід застарів. Закрий і знову відкрий застосунок у Telegram.</p>;
     case "unreachable":
       return <p className={ui.note}>Не вдалося зв'язатися з сервером.</p>;
-    case "register":
-      return <NameForm initData={initData} onRegistered={arrive} onLoginRefused={refuse} />;
+    case "register": {
+      const { next } = session;
+      return (
+        <NameForm initData={initData} onRegistered={(player) => arrive(player, next)} onLoginRefused={refuse} />
+      );
+    }
+    case "invited": {
+      const { player, invite } = session;
+      return (
+        <InviteScreen
+          invite={invite}
+          onAccept={() => (player ? arrive(player, "join") : setSession({ status: "register", next: "join" }))}
+          onDecline={() => {
+            goOn(player);
+            navigate("/", { replace: true });
+          }}
+        />
+      );
+    }
     case "join-failed": {
       const { player, message } = session;
       return (
         <div className={styles.session}>
           <p className={ui.note}>{message}</p>
-          <Link to="/" className={styles.back} onClick={() => setSession({ status: "ready", player })}>
+          <Link to="/" className={styles.back} onClick={() => goOn(player)}>
             Мої ігри
           </Link>
         </div>

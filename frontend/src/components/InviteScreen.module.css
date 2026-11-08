@@ -1,0 +1,35 @@
+/* The invite in the «Табло» look: who invites in a panel with an amber edge, the penalties under it, then the two
+   choices side by side, accept on the right (invite-preview-accept, D2–D3). */
+.screen {
+  display: grid;
+  gap: var(--gap);
+}
+
+.card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.invitedBy {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.terms {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}

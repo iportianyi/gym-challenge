@@ -27,19 +27,28 @@ pytest`; frontend: the same with `frontend-check vitest run`.
   `/api` fallback; verify every test in `test_invites.py` and the rest of pytest pass, and ruff and ty are clean —
   `136 passed`; ruff check, ruff format --check and ty: all clean. The route reuses `JoinRequest` (strict string
   token) and `account_player`
-- [ ] 2.2 Commit (`feat(api): read an invite before joining its game`)
+- [x] 2.2 Commit (`feat(api): read an invite before joining its game`)
 
 ## 3. Web app
 
-- [ ] 3.1 `frontend/src/api/`: `previewInvite(initData, token)` returning the preview or `"used"` / `"not-found"`, and
-  401 as `LoginRefusedError`, like `joinGame`
-- [ ] 3.2 `InviteScreen.tsx` and its pure `inviteLines` (design D3, with a unit test for the step-`0` case and the
+- [x] 3.1 `frontend/src/api/`: `previewInvite(initData, token)` returning the preview or `"used"` / `"not-found"`, and
+  401 as `LoginRefusedError`, like `joinGame` — `frontend/src/api/invites.ts`
+- [x] 3.2 `InviteScreen.tsx` and its pure `inviteLines` (design D3, with a unit test for the step-`0` case and the
   no-break spaces); `PlayerSession.tsx` launch flow of design D2. Verify every test in `Invites.test.tsx` and the rest
-  of Vitest pass, ESLint and tsc clean
-- [ ] 3.3 Playwright on `docker compose up --build` with the dev link `--start <token>` of a real invite game: the
+  of Vitest pass, ESLint and tsc clean — `Tests  117 passed (117)` (2 new in `game/invite.test.ts`); ESLint and tsc
+  clean. `GET /api/me` and the preview run side by side through `Promise.all`; a failed preview becomes the message,
+  a refused login refuses the session
+- [x] 3.3 Playwright on `docker compose up --build` with the dev link `--start <token>` of a real invite game: the
   invite screen at 320×640 (no horizontal scroll, `Відмовитись` left of `Прийняти`, both visible without
   scrolling), accept as a new player (name form, then the game), as a registered player, and decline (back to
-  `Мої ігри`, the game still waiting for the organizer); screenshots in `.playwright-mcp/`, findings quoted here
+  `Мої ігри`, the game still waiting for the organizer); screenshots in `.playwright-mcp/`, findings quoted here —
+  local app with `local-dev-token`, organizer 900301 with invite games 12–14. 320×640, new player 900303 on game 12:
+  heading `Гра: Віджимання`, the five lines as specified, `Відмовитись` x 16–156 and `Прийняти` x 164–304, both
+  y 379–427 (visible without scrolling), no horizontal scroll (`invite-screen-320.png`); `Прийняти` → `Як тебе
+  звати?` prefilled `Новенька` → `Почати` → `Раунд 1` at `/games/12`. Registered 900302 on game 13: invite screen,
+  `Прийняти` → `Раунд 1` at `/games/13`. The same player on game 14: `Відмовитись` → `Мої ігри` at `/`, listing only
+  game 13. As the organizer: 12 and 13 `active` with those opponents, 14 `waiting` with its `invite_url`. Console: only
+  the expected `GET /api/me` 404 of a new player and the known `favicon.ico` 404
 - [ ] 3.4 Commit (`feat(web): invite screen with the organizer and penalties, join after Прийняти`)
 
 ## 4. Hosted check
