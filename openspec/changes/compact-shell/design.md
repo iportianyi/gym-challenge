@@ -77,6 +77,16 @@ Chromium and Firefox do not request `/favicon.ico`; the hosted check is a Playwr
 - The "one line at 320 px" and "no `/favicon.ico` request" scenarios need a real layout and a real browser: they are
   checked with Playwright by hand, like the phone-screen scenarios of `clarify-round-and-result`.
 
+## Notes from implementation
+
+- D2: the page grid (`App.module.css`, `.page`) gets `grid-template-columns: minmax(0, 1fr)`. A grid item's
+  `min-width` is `auto`, so with the name on one line (`nowrap`) the column grew to the whole name (365 px at a 320 px
+  screen) and the page scrolled sideways; `minmax(0, …)` keeps the column the screen's width and lets the ellipsis
+  work. Found in task 2.4.
+- web-shell scenario "The header is one line on a phone": "the same top position" became "within the heading's top
+  and bottom". The heading and the smaller name are aligned on their text baseline, so their tops differ by 1 px
+  (16 and 17 px) while both are on one line; the old wording would fail a correct layout. Found in task 2.4.
+
 ## Risks / Trade-offs
 
 - Showing only the name drops the visible words `Ти граєш як`: a first-time player may not at once read it as

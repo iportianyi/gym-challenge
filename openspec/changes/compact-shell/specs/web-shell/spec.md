@@ -41,7 +41,8 @@ a name too long for it is cut with `…`.
 #### Scenario: The header is one line on a phone
 - **WHEN** the app is opened at 320×640 px as a player named `Олександра-Анастасія Вишнева-Подільська`
   (39 characters) and shows `Мої ігри`
-- **THEN** the heading `Gym Challenge` and the name have the same top position on the screen
+- **THEN** the name lies on the heading's line: its top and bottom on the screen are within the top and bottom of
+  the heading `Gym Challenge`
 - **AND** the page has no horizontal scroll
 - **AND** the name ends with `…` where it does not fit
 
