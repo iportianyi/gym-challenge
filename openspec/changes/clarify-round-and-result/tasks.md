@@ -69,6 +69,9 @@ dependency or harness changes. Vitest runs as
 
 ## 4. Review and check
 
-- [ ] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/clarify-round-and-result.md`
-- [ ] 4.2 Run the project check command and quote its summary line
+- [x] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/clarify-round-and-result.md` — CONDITIONAL: A, C, D, E, F PASS; B NOT VISIBLE because the four
+  layout scenarios are checked by Playwright by hand (design D7) with no committed test; the field below the first
+  screen at 320×640 and task 3.4 are left to the human
+- [x] 4.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 129 passed, Vitest 108 passed), run again after the review on the final tree
