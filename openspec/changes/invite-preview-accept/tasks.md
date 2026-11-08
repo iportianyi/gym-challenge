@@ -63,6 +63,8 @@ pytest`; frontend: the same with `frontend-check vitest run`.
 
 ## 5. Review and check
 
-- [ ] 5.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/invite-preview-accept.md`
-- [ ] 5.2 Run the project check command and quote its summary line
+- [x] 5.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/invite-preview-accept.md` — ACCEPT, A–F PASS; both findings (no `previewing` state; an unreachable
+  role without a player) recorded in the design notes, no code change
+- [x] 5.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 136 passed, Vitest 117 passed), on the HEAD the review saw

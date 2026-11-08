@@ -79,3 +79,14 @@ their old data. After the code, a check on the hosted app with two Telegram acco
 
 No database change. Deploy with `fly deploy --remote-only --app gym-challenge` after `make check`, asking first
 (`CLAUDE.md`), then `node scripts/hosting-check.mjs` and the human's check with a second Telegram account.
+
+## Implementation notes
+
+- D2 named a `previewing` state; the code reads `GET /api/me` and the preview together in `loading`
+  (`Promise.all`), so there is no separate state. A failed preview becomes the `join-failed` message; a refused login
+  refuses the session. Found by the review (`docs/reviews/invite-preview-accept.md`, finding 1).
+- A preview with role `organizer` or `opponent` but no player falls through to the invite screen. The server never
+  answers such a role without a player (both come from the viewer's player), so it is unreachable and not tested
+  (review finding 2).
+- «в гру» is joined with a no-break space after the Playwright check at 320 px showed «гру» alone on a line
+  (commit `b5d3652`, at the human's request).
