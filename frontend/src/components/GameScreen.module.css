@@ -178,6 +178,24 @@
   font-weight: 700;
 }
 
+/* An exact guess in the result card: the same amber accent as the penalty it doubles (clarify-round-and-result, D3). */
+.exact {
+  color: var(--amber);
+  font-weight: 700;
+}
+
+/* What the round asks for, above the field (finding 1 of the UX audit). */
+.explain {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.question {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
 .penalty {
   color: var(--amber);
   font-weight: 600;

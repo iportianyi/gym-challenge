@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router";
 
 import { hasOpponent, sendActual, sendGuess } from "../api/games";
 import { useGame } from "../game/useGame";
-import { viewGame, type Phase, type RoundView } from "../game/view";
+import { viewGame, type CardView, type HistoryItem, type Phase } from "../game/view";
 import styles from "./GameScreen.module.css";
 import NumberEntry from "./NumberEntry";
 import ui from "./ui.module.css";
@@ -78,6 +78,9 @@ export default function GameScreen({ initData, playerId, onLoginRefused }: Props
         </div>
       )}
 
+      {/* The result comes before the next round's field, so the one who lost sees the penalty first (D2). */}
+      {view.card && <ResultCard card={view.card} />}
+
       {view.phase.kind !== "over" && (
         <CurrentRound
           phase={view.phase}
@@ -85,15 +88,6 @@ export default function GameScreen({ initData, playerId, onLoginRefused }: Props
           onGuess={(value) => move(() => sendGuess(initData, id, value))}
           onActual={(value) => move(() => sendActual(initData, id, value))}
         />
-      )}
-
-      {view.card && (
-        <section aria-labelledby="card-heading" className={styles.card}>
-          <h3 id="card-heading" className={styles.subheading}>
-            Підсумок раунду {view.card.number}
-          </h3>
-          <RoundLines round={view.card} />
-        </section>
       )}
 
       {view.history.length > 0 && (
@@ -104,8 +98,7 @@ export default function GameScreen({ initData, playerId, onLoginRefused }: Props
           <ol aria-labelledby="history-heading" className={styles.rounds}>
             {view.history.map((round) => (
               <li key={round.number} className={styles.round}>
-                <span className={styles.roundNumber}>Раунд {round.number}</span>
-                <RoundLines round={round} />
+                <HistoryLines round={round} />
               </li>
             ))}
           </ol>
@@ -131,6 +124,10 @@ function CurrentRound({ phase, otherName, onGuess, onActual }: RoundProps) {
       </h3>
       {phase.kind === "guess" && (
         <>
+          <div className={styles.explain}>
+            <p className={styles.question}>Скільки людей зараз у залі?</p>
+            <p className={styles.hint}>Ближча здогадка отримує бал. Гра — до 5 балів.</p>
+          </div>
           {phase.otherGuessed && <p className={styles.hint}>Здогадка суперника вже є</p>}
           <NumberEntry
             id="guess"
@@ -159,12 +156,15 @@ function CurrentRound({ phase, otherName, onGuess, onActual }: RoundProps) {
             </li>
           </ul>
           {phase.kind === "enter-actual" ? (
-            <NumberEntry
-              id="actual"
-              label="Реальна кількість"
-              confirmText={(value) => `Реальна кількість ${value}? Це закриє раунд.`}
-              onSend={onActual}
-            />
+            <>
+              <p className={styles.question}>Скільки людей показує апка залу?</p>
+              <NumberEntry
+                id="actual"
+                label="Реальна кількість"
+                confirmText={(value) => `Реальна кількість ${value}? Це закриє раунд.`}
+                onSend={onActual}
+              />
+            </>
           ) : (
             <p className={styles.hint}>Чекаємо реальну кількість від суперника</p>
           )}
@@ -174,13 +174,33 @@ function CurrentRound({ phase, otherName, onGuess, onActual }: RoundProps) {
   );
 }
 
-function RoundLines({ round }: { round: RoundView }) {
+/** The round just settled: outcome and penalty first, then the numbers; an exact guess stands out (D2–D3). */
+function ResultCard({ card }: { card: CardView }) {
+  return (
+    <section aria-labelledby="card-heading" className={styles.card}>
+      <h3 id="card-heading" className={styles.subheading}>
+        Підсумок раунду {card.number}
+      </h3>
+      <div className={styles.lines}>
+        <p className={styles.outcome}>{card.outcome}</p>
+        {card.penalty && <p className={styles.penalty}>{card.penalty}</p>}
+        <p>{card.actual}</p>
+        {card.guesses.map((guess) => (
+          <p key={guess.text} className={guess.exact ? styles.exact : undefined}>
+            {guess.text}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function HistoryLines({ round }: { round: HistoryItem }) {
   return (
     // Paragraphs, not a list: the history items must stay the only list items of the history list.
     <div className={styles.lines}>
-      <p>{round.actual}</p>
-      <p>{round.guesses[0]}</p>
-      <p>{round.guesses[1]}</p>
+      <p className={styles.roundNumber}>{round.title}</p>
+      <p>{round.guesses}</p>
       <p className={styles.outcome}>{round.outcome}</p>
       {round.penalty && <p className={styles.penalty}>{round.penalty}</p>}
     </div>

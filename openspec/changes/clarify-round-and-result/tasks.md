@@ -23,17 +23,20 @@ dependency or harness changes. Vitest runs as
   length of 1 but got 2` / `expected <h3 id="history-heading" …(1)></h3> to be null`; 4 invites tests `Unable to find
   an element with the text: Чекаємо суперника. Надішли посилання на гру.`. "Nothing to explain while waiting" passes
   already (it asserts absence). ESLint and tsc clean
-- [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for the round result, exact hit and invite copy`)
+- [x] 1.4 Commit the failing tests on their own (`test: red scenarios for the round result, exact hit and invite copy`)
 
 ## 2. Round view and screen
 
-- [ ] 2.1 `frontend/src/game/view.ts`: split the round view into card and history item, history without the card's
+- [x] 2.1 `frontend/src/game/view.ts`: split the round view into card and history item, history without the card's
   round (design D1); exact guess as `· точно` / `(точно)` and the mark ` (<base> ×2 за точне влучання)` with a named
   multiplier constant pointing to `backend/app/rules.py` (D3); no-break spaces in `penaltyText` (D4). Update
   `frontend/src/game/view.test.ts` to the new shapes and texts, keeping every case's game data; verify it passes
-- [ ] 2.2 `frontend/src/components/GameScreen.tsx` + `GameScreen.module.css`: card above `CurrentRound`, outcome and
+  — `Tests  18 passed (18)` (two new cases: the card's round left out of the history, an exact guess in both views;
+  the history-order case gets a guess in round 3 so both rounds are in the history)
+- [x] 2.2 `frontend/src/components/GameScreen.tsx` + `GameScreen.module.css`: card above `CurrentRound`, outcome and
   penalty first (D2); exact-guess accent (D3); the explaining texts in the guess and actual-count phases; history item
-  in its three or four lines. Verify every test in `GameScreen.test.tsx` passes
+  in its three or four lines. Verify every test in `GameScreen.test.tsx` passes — all pass; Vitest
+  `Tests  4 failed | 104 passed (108)`, the 4 being the invite text of task 3.1; ESLint and tsc clean
 - [ ] 2.3 Commit (`feat(web): round result above the next round, compact history, exact hit explained`)
 
 ## 3. Score and invite layout

@@ -11,11 +11,24 @@ export type Phase =
   | { kind: "wait-actual"; round: number; mine: number; theirs: number }
   | { kind: "over" };
 
-export type RoundView = {
+/** One guess in the result card: "Ти: 40 · відстань 7", or "Тренер: 47 · точно" for an exact one. */
+export type GuessLine = { text: string; exact: boolean };
+
+/** The round just settled, read outcome first (clarify-round-and-result, D1–D3). */
+export type CardView = {
   number: number;
+  outcome: string;
+  penalty: string | null;
   actual: string;
-  /** Mine first: "Ти: 40 · відстань 7", then "<name>: 55 · відстань 8". */
-  guesses: [string, string];
+  /** Mine first. */
+  guesses: [GuessLine, GuessLine];
+};
+
+/** A settled round in the history, without distances: "Раунд 2 · у залі 47", "Ти 50 · Тренер 47 (точно)". */
+export type HistoryItem = {
+  number: number;
+  title: string;
+  guesses: string;
   outcome: string;
   penalty: string | null;
 };
@@ -27,17 +40,23 @@ export type GameView = {
   theirPoints: number;
   phase: Phase;
   /** The round just settled, while nobody has guessed in the next one or the game is over. */
-  card: RoundView | null;
-  /** Every settled round, newest first. */
-  history: RoundView[];
+  card: CardView | null;
+  /** Every settled round except the card's, newest first. */
+  history: HistoryItem[];
   end: { headline: string; penalty: string | null } | null;
 };
 
-// A no-break space keeps the mark on one line on a narrow phone screen.
-const DOUBLED_MARK = " (×2\u00a0точно)";
+/** The backend's `EXACT_MULTIPLIER` (backend/app/rules.py): an exact winning guess doubles the penalty. */
+const EXACT_MULTIPLIER = 2;
+
+// No-break spaces keep "× 10" with the exercise and the mark in one piece on a narrow phone screen (D4).
+const NBSP = "\u00a0";
 
 export function penaltyText(penalty: Penalty, me: number, exercise: string): string {
-  const what = `${exercise} × ${penalty.reps}${penalty.doubled ? DOUBLED_MARK : ""}`;
+  const mark = penalty.doubled
+    ? ` (${penalty.reps / EXACT_MULTIPLIER}${NBSP}×${EXACT_MULTIPLIER}${NBSP}за точне влучання)`
+    : "";
+  const what = `${exercise}${NBSP}×${NBSP}${penalty.reps}${mark}`;
   return penalty.player_id === me ? `Твоє покарання: ${what}` : `Покарання суперника: ${what}`;
 }
 
@@ -46,26 +65,43 @@ export function viewGame(game: PlayedGame, me: number): GameView {
   const other = game.organizer.id === me ? game.opponent : game.organizer;
   const pointsOf = (id: number) => game.score.find((entry) => entry.player_id === id)?.points ?? 0;
 
-  const viewRound = (round: SettledRound): RoundView => {
-    const guessOf = (id: number) => round.guesses.find((guess) => guess.player_id === id)?.value ?? 0;
-    const line = (label: string, value: number) => `${label}: ${value} · відстань ${Math.abs(value - round.actual)}`;
+  const guessOf = (round: SettledRound, id: number) =>
+    round.guesses.find((guess) => guess.player_id === id)?.value ?? 0;
+  const outcomeOf = (round: SettledRound) =>
+    round.winner_id === null ? "Нічия" : round.winner_id === me ? "Раунд твій" : `Переможець раунду — ${other.name}`;
+  const penaltyOf = (round: SettledRound) =>
+    round.penalty === null ? null : penaltyText(round.penalty, me, game.exercise);
+
+  const cardOf = (round: SettledRound): CardView => {
+    const line = (label: string, value: number): GuessLine => {
+      const exact = value === round.actual;
+      return { text: `${label}: ${value} · ${exact ? "точно" : `відстань ${Math.abs(value - round.actual)}`}`, exact };
+    };
     return {
       number: round.number,
+      outcome: outcomeOf(round),
+      penalty: penaltyOf(round),
       actual: `Реальна кількість: ${round.actual}`,
-      guesses: [line("Ти", guessOf(me)), line(other.name, guessOf(other.id))],
-      outcome:
-        round.winner_id === null
-          ? "Нічия"
-          : round.winner_id === me
-            ? "Раунд твій"
-            : `Переможець раунду — ${other.name}`,
-      penalty: round.penalty === null ? null : penaltyText(round.penalty, me, game.exercise),
+      guesses: [line("Ти", guessOf(round, me)), line(other.name, guessOf(round, other.id))],
+    };
+  };
+
+  const historyOf = (round: SettledRound): HistoryItem => {
+    const part = (label: string, value: number) => `${label} ${value}${value === round.actual ? " (точно)" : ""}`;
+    return {
+      number: round.number,
+      title: `Раунд ${round.number} · у залі ${round.actual}`,
+      guesses: `${part("Ти", guessOf(round, me))} · ${part(other.name, guessOf(round, other.id))}`,
+      outcome: outcomeOf(round),
+      penalty: penaltyOf(round),
     };
   };
 
   const current = game.status === "finished" ? null : game.current_round;
   const nobodyGuessed = current === null || current.guesses.every((entry) => !entry.guessed);
   const last = game.rounds.at(-1);
+  // One rule decides both: the card shows the last round, and the history leaves it out while it does (D1).
+  const card = last !== undefined && nobodyGuessed ? last : null;
 
   return {
     title: `Гра: ${game.exercise}`,
@@ -73,8 +109,11 @@ export function viewGame(game: PlayedGame, me: number): GameView {
     myPoints: pointsOf(me),
     theirPoints: pointsOf(other.id),
     phase: phaseOf(game, me, other.id),
-    card: last !== undefined && nobodyGuessed ? viewRound(last) : null,
-    history: game.rounds.map(viewRound).reverse(),
+    card: card === null ? null : cardOf(card),
+    history: game.rounds
+      .filter((round) => round !== card)
+      .map(historyOf)
+      .reverse(),
     end:
       game.status === "finished" && game.winner_id !== null
         ? {
