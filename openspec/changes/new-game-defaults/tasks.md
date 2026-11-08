@@ -38,6 +38,7 @@ frontend-check vitest run`.
 
 ## 4. Review and check
 
-- [ ] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/new-game-defaults.md`
-- [ ] 4.2 Run the project check command and quote its summary line
+- [x] 4.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/new-game-defaults.md` — ACCEPT, A–F PASS, no findings
+- [x] 4.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 136 passed, Vitest 120 passed), on the HEAD the review saw
