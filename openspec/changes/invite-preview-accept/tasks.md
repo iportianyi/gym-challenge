@@ -49,14 +49,17 @@ pytest`; frontend: the same with `frontend-check vitest run`.
   `Прийняти` → `Раунд 1` at `/games/13`. The same player on game 14: `Відмовитись` → `Мої ігри` at `/`, listing only
   game 13. As the organizer: 12 and 13 `active` with those opponents, 14 `waiting` with its `invite_url`. Console: only
   the expected `GET /api/me` 404 of a new player and the known `favicon.ico` 404
-- [ ] 3.4 Commit (`feat(web): invite screen with the organizer and penalties, join after Прийняти`)
+- [x] 3.4 Commit (`feat(web): invite screen with the organizer and penalties, join after Прийняти`)
 
 ## 4. Hosted check
 
-- [ ] 4.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
-  `node scripts/hosting-check.mjs` and quote its last line
-- [ ] 4.2 **human** — with a second Telegram account: open an invite from `gym_challenge_iport_bot`, see the organizer
-  and the penalties, `Прийняти`, play a round; record the answer here
+- [x] 4.1 Ask the human before `fly deploy --remote-only --app gym-challenge`; deploy, run
+  `node scripts/hosting-check.mjs` and quote its last line — the human said yes, after asking to keep «в гру»
+  together (`b5d3652`); release 3, image `deployment-01M6Y9SM6BTNBPKM6Q7C9E6C6A`, `started`, `1 total, 1 passing`;
+  `hosting-check: OK (https://gym-challenge.fly.dev)`; `POST /api/invites/preview` without a login answers `401`
+- [x] 4.2 **human** — with a second Telegram account: open an invite from `gym_challenge_iport_bot`, see the organizer
+  and the penalties, `Прийняти`, play a round; record the answer here — 2026-11-08, the human after checking from a
+  second Telegram account on release 3: «перевірив з другого акаунта, все ок»
 
 ## 5. Review and check
 
