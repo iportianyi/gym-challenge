@@ -17,7 +17,7 @@ describe("invite lines", () => {
   it("name the organizer and every penalty, with no-break spaces", () => {
     expect(inviteLines(PREVIEW)).toEqual({
       title: "Гра: Присідання",
-      invitedBy: "Клієнт кличе тебе в гру",
+      invitedBy: "Клієнт кличе тебе в\u00a0гру",
       terms: [
         "Покарання за раунд: Присідання × 10",
         "+5 за кожну поразку поспіль",

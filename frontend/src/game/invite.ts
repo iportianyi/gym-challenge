@@ -18,7 +18,8 @@ export function inviteLines(invite: InvitePreview): InviteLines {
   const reps = (count: number) => `${invite.exercise}${NBSP}×${NBSP}${count}`;
   return {
     title: `Гра: ${invite.exercise}`,
-    invitedBy: `${invite.organizer.name} кличе тебе в гру`,
+    // "в гру" stays together: a short last word alone on a line reads as a mistake.
+    invitedBy: `${invite.organizer.name} кличе тебе в${NBSP}гру`,
     terms: [
       `Покарання за раунд: ${reps(invite.base_reps)}`,
       ...(invite.step_reps > 0 ? [`+${invite.step_reps} за кожну поразку поспіль`] : []),
