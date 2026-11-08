@@ -133,8 +133,9 @@ function LoggedIn({ initData, startParam }: { initData: string; startParam: stri
     return () => controller.abort();
   }, [joining, initData, navigate, refuse]);
 
-  // One header line above every screen; the name only once the player is known (compact-shell, design D1).
-  const name = session.status === "ready" ? session.player.name : undefined;
+  // One header line above every screen, with the name whenever the player is known — the invite screen and its
+  // messages included (compact-shell, design D1 and review finding 1).
+  const name = "player" in session ? session.player?.name : undefined;
   return (
     <>
       <AppHeader name={name} />

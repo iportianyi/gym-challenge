@@ -87,6 +87,10 @@ Chromium and Firefox do not request `/favicon.ico`; the hosted check is a Playwr
   and bottom". The heading and the smaller name are aligned on their text baseline, so their tops differ by 1 px
   (16 and 17 px) while both are on one line; the old wording would fail a correct layout. Found in task 2.4.
 
+- D1: the name goes to the header whenever the session holds a player (`invited`, `joining`, `join-failed`,
+  `ready`), not only in `ready` as first written: review finding 1, the spec's "once the player is known"; the
+  human chose to fix the code. A new person on an invite (no player yet) still sees `Gym Challenge` only.
+
 ## Risks / Trade-offs
 
 - Showing only the name drops the visible words `Ти граєш як`: a first-time player may not at once read it as
