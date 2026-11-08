@@ -64,8 +64,10 @@ dependency or harness changes. Vitest runs as
   `favicon.ico` 404 (audit 15). Screenshots `clarify-round-320.png`, `clarify-invite-320.png`; the app was not
   running before and was removed after; the test players and games stay in the local `gym-data` volume
 - [x] 3.3 Commit (`feat(web): score centred with names under it, invite buttons on their own lines`)
-- [ ] 3.4 Ask the human to look at a round result, an exact hit, the score and the invite screen on the iPhone through
-  the dev bot, and record the answer here
+- [x] 3.4 Ask the human to look at a round result, an exact hit, the score and the invite screen on the iPhone through
+  the dev bot, and record the answer here — the human looked on the iPhone after the review on 2026-11-08: «наче все
+  ок», the guess field below the card included. The human also accepted the review's criterion B as is (layout
+  scenarios checked by Playwright by hand, design D7)
 
 ## 4. Review and check
 
