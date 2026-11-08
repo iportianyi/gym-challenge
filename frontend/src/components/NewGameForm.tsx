@@ -98,13 +98,13 @@ export default function NewGameForm({ initData, onCreated, onCancel, onLoginRefu
           <input id="exercise" name="exercise" type="text" required maxLength={60} />
         </Field>
         <Field id="base_reps" label="Повторень за першу поразку">
-          <RepsInput id="base_reps" min={1} />
+          <RepsInput id="base_reps" min={1} defaultValue={10} />
         </Field>
         <Field id="step_reps" label="Додати за кожну наступну поразку поспіль">
-          <RepsInput id="step_reps" min={0} />
+          <RepsInput id="step_reps" min={0} defaultValue={5} />
         </Field>
         <Field id="final_reps" label="Повторень за програну гру">
-          <RepsInput id="final_reps" min={1} />
+          <RepsInput id="final_reps" min={1} defaultValue={30} />
         </Field>
         <div className={styles.actions}>
           <button type="submit" className={ui.primary} disabled={sending}>
@@ -128,7 +128,8 @@ function Field({ id, label, children }: { id: string; label: string; children: R
   );
 }
 
-function RepsInput({ id, min }: { id: string; min: number }) {
+/** A reps field, prefilled so a game can start with only the exercise typed (new-game-defaults). */
+function RepsInput({ id, min, defaultValue }: { id: string; min: number; defaultValue: number }) {
   return (
     <input
       id={id}
@@ -138,6 +139,7 @@ function RepsInput({ id, min }: { id: string; min: number }) {
       inputMode="numeric"
       required
       min={min}
+      defaultValue={defaultValue}
       max={1000}
       step={1}
     />

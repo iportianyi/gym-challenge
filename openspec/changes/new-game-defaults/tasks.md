@@ -19,12 +19,16 @@ frontend-check vitest run`.
 
 ## 2. Web app
 
-- [ ] 2.1 `frontend/src/components/NewGameForm.tsx`: `RepsInput` takes a `defaultValue`; the three fields get `10`,
-  `5`, `30`. Limits (`min`, `max`, `step`, `required`) unchanged. Verify every Vitest test passes, ESLint and tsc clean
-- [ ] 2.2 Playwright on `docker compose up --build` with a dev login link: open `Нова гра` at 320×640, the three
+- [x] 2.1 `frontend/src/components/NewGameForm.tsx`: `RepsInput` takes a `defaultValue`; the three fields get `10`,
+  `5`, `30`. Limits (`min`, `max`, `step`, `required`) unchanged. Verify every Vitest test passes, ESLint and tsc clean — `Tests  120 passed (120)`; ESLint and tsc clean
+- [x] 2.2 Playwright on `docker compose up --build` with a dev login link: open `Нова гра` at 320×640, the three
   fields show `10`, `5`, `30`; fill only `Вправа`, `Почати гру` opens the invite game with those reps; screenshot in
-  `.playwright-mcp/`, findings quoted here
-- [ ] 2.3 Commit (`feat(web): prefill the new-game reps with 10, 5 and 30`)
+  `.playwright-mcp/`, findings quoted here — local app with `TELEGRAM_BOT_TOKEN=local-dev-token` from the shell, new
+  player 900401: at 320×640 the form shows `Вправа` `""`, `10`, `5`, `30`, no horizontal scroll
+  (`new-game-defaults-320.png`); only `Присідання` typed, `Почати гру` → `/games/15`, heading `Гра: Присідання`,
+  `GET /api/games/15` has `status` `waiting`, `base_reps` 10, `step_reps` 5, `final_reps` 30. Console: only the
+  expected `GET /api/me` 404 of a new player
+- [x] 2.3 Commit (`feat(web): prefill the new-game reps with 10, 5 and 30`)
 
 ## 3. Hosted check
 
