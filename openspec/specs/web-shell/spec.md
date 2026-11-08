@@ -36,7 +36,10 @@ still return 404.
 ### Requirement: Start page greets the player
 The start page SHALL show the heading `Gym Challenge` as its main (level 1) heading. This text is in English by the
 product owner's choice, as an exception to the Ukrainian UI copy rule. The page SHALL NOT request `GET /api/health`
-and SHALL NOT show a server status.
+and SHALL NOT show a server status. The heading SHALL stand in the page header, a single line above every screen;
+once the player is known — on every screen, the invite screen and its messages included — the header SHALL also show the player's name on the same line, preceded by the words
+`Ти граєш як ` for screen readers only (visually hidden). On a screen 320 px wide the header SHALL stay one line:
+a name too long for it is cut with `…`.
 
 #### Scenario: Greeting is shown
 - **WHEN** the start page has loaded
@@ -55,3 +58,45 @@ and SHALL NOT show a server status.
 - **WHEN** the app has been opened as player `1`
 - **THEN** no request to `GET /api/health` has been sent
 - **AND** the page shows none of the texts `Перевіряємо сервер…`, `Сервер працює`, `Сервер недоступний`
+
+#### Scenario: The header names the player
+- **WHEN** the app is opened as player `1` (`Клієнт`)
+- **THEN** the page header contains the level 1 heading `Gym Challenge` and the text `Клієнт`
+- **AND** the text content of the page header is `Gym ChallengeТи граєш як Клієнт`
+- **AND** the words `Ти граєш як ` are inside an element hidden visually but not from screen readers
+
+#### Scenario: The header before the player is known
+- **WHEN** the app is loaded with `t1`, `GET /api/me` answers `404` and the page shows the heading `Як тебе звати?`
+- **THEN** the text content of the page header is `Gym Challenge`
+
+#### Scenario: The header on an invite
+- **WHEN** registered player `2` (`Тренер`) opens the app from an invite link and the page shows the heading
+  `Гра: Присідання` of the invite screen
+- **THEN** the text content of the page header is `Gym ChallengeТи граєш як Тренер`
+
+#### Scenario: The header on a link that cannot be joined
+- **WHEN** registered player `2` (`Тренер`) opens the app from an invite link whose preview answers `409` and the page
+  shows `Це запрошення вже прийняв інший гравець.`
+- **THEN** the text content of the page header is `Gym ChallengeТи граєш як Тренер`
+
+#### Scenario: The header is one line on a phone
+- **WHEN** the app is opened at 320×640 px as a player named `Олександра-Анастасія Вишнева-Подільська`
+  (39 characters) and shows `Мої ігри`
+- **THEN** the name lies on the heading's line: its top and bottom on the screen are within the top and bottom of
+  the heading `Gym Challenge`
+- **AND** the page has no horizontal scroll
+- **AND** the name ends with `…` where it does not fit
+
+### Requirement: The page has an icon
+The page SHALL link an SVG icon at `/favicon.svg`, served from the frontend build, so that a browser does not ask for
+`/favicon.ico`.
+
+#### Scenario: The icon is linked
+- **WHEN** the frontend's `index.html` is read
+- **THEN** it contains `<link rel="icon" type="image/svg+xml" href="/favicon.svg" />`
+- **AND** the frontend's public directory has a file `favicon.svg` whose content starts with `<svg`
+
+#### Scenario: No request for favicon.ico
+- **WHEN** a browser opens the app as a player and shows `Мої ігри`
+- **THEN** `GET /favicon.svg` answers `200` with a `Content-Type` starting with `image/svg+xml`
+- **AND** no request for `/favicon.ico` has been made
