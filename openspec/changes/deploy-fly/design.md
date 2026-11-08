@@ -152,3 +152,6 @@ its last snapshot and redeploy the previous image. Removing the hosting: `fly ap
   `grace_period` is 10 s, yet one failure was logged a second before `Application startup complete`. It passed
   from the next check on; left as is, since `auto_start_machines` holds the request until the app answers (the
   wake-up took 4.7 s in task 3.7).
+- D6 named `curl` for the HTTP scenarios; tasks 1.1 turned them into `scripts/hosting-check.mjs` (the same requests,
+  one command after every deploy), as the proposal's Impact lists. Found by the review (`docs/reviews/deploy-fly.md`,
+  finding 1).

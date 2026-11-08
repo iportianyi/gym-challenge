@@ -91,13 +91,17 @@ result. `fly …` below means `docker compose --profile deploy run --rm fly …`
   from `--snapshot-id`), which would change production and are marked in the doc as not yet run; `fly releases
   --image` lists v1 and v2, and `fly volumes snapshots list` shows none yet (the first daily one is due). `docs/spec.md`
   v2.5
-- [ ] 5.2 Commit (`docs: deploying the game to Fly.io`)
-- [ ] 5.3 Harness, shown as a diff and committed only after the human's yes, on its own: `CLAUDE.md` gets the deploy
+- [x] 5.2 Commit (`docs: deploying the game to Fly.io`)
+- [x] 5.3 Harness, shown as a diff and committed only after the human's yes, on its own: `CLAUDE.md` gets the deploy
   commands, `openspec/config.yaml` context drops "Local run only … no hosting"
-  (`chore(harness): deploy commands and hosting context`)
+  (`chore(harness): deploy commands and hosting context`) — the human approved the diff, including the added
+  «Питати перед» line for `fly deploy` and resource-changing `fly` commands
 
 ## 6. Review and check
 
-- [ ] 6.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
-  `docs/reviews/deploy-fly.md`
-- [ ] 6.2 Run the project check command and quote its summary line
+- [x] 6.1 Run the change-reviewer subagent on a review packet and save its reply verbatim to
+  `docs/reviews/deploy-fly.md` — ACCEPT, A–F PASS; finding 1 (D6 vs the script) recorded in design notes; finding 2
+  is the 5.2/5.3 ticks, which were made after the packet's range and committed with this review; findings 3–4 need no
+  change (the rollback commands are marked as not run in the doc)
+- [x] 6.2 Run the project check command and quote its summary line — `check: OK (backend, frontend, spec, secrets)`
+  (pytest 129 passed, Vitest 108 passed), after the harness commit 3203683
