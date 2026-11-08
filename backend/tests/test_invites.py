@@ -1,4 +1,4 @@
-"""API scenarios from openspec/changes/game-invites/specs/invites/spec.md."""
+"""API scenarios from openspec/specs/invites/spec.md (game-invites and invite-preview-accept)."""
 
 import re
 import sqlite3
@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 
-from tests.conftest import SETTINGS, as_player, invite, join, register
+from tests.conftest import SETTINGS, as_player, invite, join, login, register
 from tests.test_migrations import sqlite_path
 
 pytestmark = pytest.mark.usefixtures("players")
@@ -255,3 +255,85 @@ def test_join_lost_to_a_request_in_between(
     assert body["current_round"]["number"] == 1
     with sqlite3.connect(sqlite_path(database_url)) as connection:
         assert connection.execute("SELECT count(*) FROM round").fetchone() == (1,)
+
+
+# Requirement: An invite can be read before joining
+
+
+def preview(client: TestClient, headers: dict[str, str], token: Any) -> Any:
+    return client.post("/api/invites/preview", headers=headers, json={"token": token})
+
+
+INVITED = {
+    "organizer": {"id": 1, "name": "Клієнт"},
+    "exercise": "Присідання",
+    "base_reps": 10,
+    "step_reps": 5,
+    "final_reps": 30,
+    "role": "invited",
+}
+
+
+def test_trener_reads_the_invite(client: TestClient) -> None:
+    game_id, token = invite(client)
+
+    response = preview(client, as_player(2), token)
+
+    assert response.status_code == 200
+    assert response.json() == INVITED
+    assert client.get("/api/games", headers=as_player(2)).json() == []
+    assert game(client, game_id, 1)["status"] == "waiting"
+
+
+def test_telegram_user_without_a_player_reads_the_invite(client: TestClient) -> None:
+    _, token = invite(client)
+
+    response = preview(client, login(3003), token)
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "invited"
+
+
+def test_organizer_reads_their_own_invite(client: TestClient) -> None:
+    _, token = invite(client)
+
+    response = preview(client, as_player(1), token)
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "organizer"
+
+
+def test_opponent_reads_the_invite_again(client: TestClient) -> None:
+    _, token = invite(client)
+    assert join(client, 2, token).status_code == 200
+
+    response = preview(client, as_player(2), token)
+
+    assert response.status_code == 200
+    assert response.json()["role"] == "opponent"
+
+
+def test_someone_else_reads_a_used_invite(client: TestClient) -> None:
+    register(client, 3)
+    _, token = invite(client)
+    assert join(client, 2, token).status_code == 200
+
+    response = preview(client, as_player(3), token)
+
+    assert response.status_code == 409
+    assert response.json() == {"detail": "Invite already used"}
+
+
+def test_unknown_invite(client: TestClient) -> None:
+    response = preview(client, as_player(2), "nope")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Invite not found"}
+
+
+def test_preview_without_a_login(client: TestClient) -> None:
+    _, token = invite(client)
+
+    response = client.post("/api/invites/preview", json={"token": token})
+
+    assert response.status_code == 401

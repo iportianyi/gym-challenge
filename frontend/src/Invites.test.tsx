@@ -1,4 +1,4 @@
-// Web-app scenarios of the invites spec (openspec/changes/game-invites/specs/invites/spec.md).
+// Web-app scenarios of the invites spec (openspec/specs/invites/spec.md: game-invites and invite-preview-accept).
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -64,13 +64,24 @@ const JOINED = {
   invite_url: null,
 };
 
+/** `POST /api/invites/preview` of `Abc_123-xyz` as an invited player reads it. */
+const PREVIEW = {
+  organizer: { id: 1, name: "Клієнт" },
+  exercise: "Присідання",
+  base_reps: 10,
+  step_reps: 5,
+  final_reps: 30,
+  role: "invited",
+};
+
 type Call = { url: string; method: string; headers: Headers; body: unknown };
 
 /**
- * A fake API: `/api/me` as in `answerMe`; `POST /api/games/join` answers `join`; `GET /api/games/7` answers from
- * `gets` in order and repeats the last one; `POST /api/games` answers `201` with the waiting game 7.
+ * A fake API: `/api/me` as in `answerMe`; `POST /api/invites/preview` answers `preview`; `POST /api/games/join`
+ * answers `join`; `GET /api/games/7` answers from `gets` in order and repeats the last one; `POST /api/games` answers
+ * `201` with the waiting game 7.
  */
-function stubApi(options: { me?: MeOptions; join?: JoinAnswer; gets?: unknown[] } = {}) {
+function stubApi(options: { me?: MeOptions; preview?: JoinAnswer; join?: JoinAnswer; gets?: unknown[] } = {}) {
   const gets = [...(options.gets ?? [JOINED])];
   const calls: Call[] = [];
   vi.stubGlobal(
@@ -83,6 +94,11 @@ function stubApi(options: { me?: MeOptions; join?: JoinAnswer; gets?: unknown[] 
       calls.push({ url, method, headers, body });
       const me = answerMe(url, method, headers, body, options.me);
       if (me) return me;
+      if (url === "/api/invites/preview" && method === "POST") {
+        const answer = options.preview ?? [200, PREVIEW];
+        if (answer === "network") throw new TypeError("Failed to fetch");
+        return jsonResponse(answer[0], answer[1]);
+      }
       const joined = answerJoin(url, method, options.join ?? [200, JOINED]);
       if (joined) return joined;
       if (url === "/api/games" && method === "GET") return jsonResponse(200, []);
@@ -96,6 +112,9 @@ function stubApi(options: { me?: MeOptions; join?: JoinAnswer; gets?: unknown[] 
 }
 
 const joins = (calls: Call[]) => calls.filter((call) => call.method === "POST" && call.url === "/api/games/join");
+const previews = (calls: Call[]) =>
+  calls.filter((call) => call.method === "POST" && call.url === "/api/invites/preview");
+const INVITED_BY = "Клієнт кличе тебе в гру";
 const gamesGets = (calls: Call[]) => calls.filter((call) => call.method === "GET" && call.url === "/api/games/7");
 
 let visibility: DocumentVisibilityState = "visible";
@@ -115,11 +134,50 @@ afterEach(() => {
   delete (navigator as { clipboard?: unknown }).clipboard;
 });
 
+describe("invites: The invite screen shows who invites and the penalties", () => {
+  it("invite screen with the settings", async () => {
+    stubApi();
+    launchWith("/", T2S);
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Гра: Присідання" })).toBeTruthy();
+    for (const text of [
+      INVITED_BY,
+      "Покарання за раунд: Присідання × 10",
+      "+5 за кожну поразку поспіль",
+      "Покарання за програну гру: Присідання × 30",
+      "Гра — до 5 балів",
+    ]) {
+      expect(screen.getByText(text)).toBeTruthy();
+    }
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Відмовитись", "Прийняти"]);
+    expect(screen.queryByRole("region", { name: "Рахунок" })).toBeNull();
+    expect(screen.queryByLabelText("Твоя здогадка")).toBeNull();
+  });
+
+  it("no step, no streak line", async () => {
+    stubApi({ preview: [200, { ...PREVIEW, step_reps: 0 }] });
+    launchWith("/", T2S);
+    render(<App />);
+
+    expect(await screen.findByText("Покарання за раунд: Присідання × 10")).toBeTruthy();
+    expect(document.body.textContent).not.toContain("за кожну поразку поспіль");
+  });
+});
+
 describe("invites: The web app joins the game it was launched with", () => {
   it("registered player opens the link", async () => {
     const calls = stubApi();
     launchWith("/", T2S);
     render(<App />);
+
+    await screen.findByText(INVITED_BY);
+    const [preview] = previews(calls);
+    expect(preview.headers.get("Authorization")).toBe(`tma ${T2S}`);
+    expect(preview.body).toEqual({ token: "Abc_123-xyz" });
+    expect(joins(calls)).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "Прийняти" }));
 
     await screen.findByRole("heading", { name: "Раунд 1" });
     const [join] = joins(calls);
@@ -133,6 +191,10 @@ describe("invites: The web app joins the game it was launched with", () => {
     launchWith("/", T2S);
     render(<App />);
 
+    await screen.findByText(INVITED_BY);
+    expect(screen.queryByRole("heading", { name: "Як тебе звати?" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Прийняти" }));
+
     await screen.findByRole("heading", { name: "Як тебе звати?" });
     expect(joins(calls)).toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "Почати" }));
@@ -142,10 +204,51 @@ describe("invites: The web app joins the game it was launched with", () => {
     expect(window.location.pathname).toBe("/games/7");
   });
 
+  it("declining the invite", async () => {
+    const calls = stubApi();
+    launchWith("/", T2S);
+    render(<App />);
+
+    await screen.findByText(INVITED_BY);
+    fireEvent.click(screen.getByRole("button", { name: "Відмовитись" }));
+
+    expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
+    expect(joins(calls)).toHaveLength(0);
+    const asked = calls.map((call) => `${call.method} ${call.url}`);
+    expect(new Set(asked)).toEqual(new Set(["GET /api/me", "POST /api/invites/preview", "GET /api/games"]));
+  });
+
+  it("a new player declines", async () => {
+    const calls = stubApi({ me: { me: "unregistered" } });
+    launchWith("/", T2S);
+    render(<App />);
+
+    await screen.findByText(INVITED_BY);
+    fireEvent.click(screen.getByRole("button", { name: "Відмовитись" }));
+
+    await screen.findByRole("heading", { name: "Як тебе звати?" });
+    fireEvent.click(screen.getByRole("button", { name: "Почати" }));
+
+    expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
+    expect(joins(calls)).toHaveLength(0);
+  });
+
+  it("the opponent opens the link again", async () => {
+    const calls = stubApi({ preview: [200, { ...PREVIEW, role: "opponent" }] });
+    launchWith("/", T2S);
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Раунд 1" });
+    expect(joins(calls)).toHaveLength(1);
+    expect(window.location.pathname).toBe("/games/7");
+    expect(screen.queryByText(INVITED_BY)).toBeNull();
+  });
+
   it("reload after joining", async () => {
     const calls = stubApi();
     launchWith("/", T2S);
     render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Прийняти" }));
     await screen.findByRole("heading", { name: "Раунд 1" });
     cleanup();
 
@@ -154,6 +257,7 @@ describe("invites: The web app joins the game it was launched with", () => {
     await screen.findByRole("heading", { name: "Раунд 1" });
 
     expect(window.location.pathname).toBe("/games/7");
+    expect(previews(calls)).toHaveLength(1);
     expect(joins(calls)).toHaveLength(1);
   });
 
@@ -163,13 +267,14 @@ describe("invites: The web app joins the game it was launched with", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Мої ігри" })).toBeTruthy();
+    expect(previews(calls)).toHaveLength(0);
     expect(joins(calls)).toHaveLength(0);
   });
 });
 
 describe("invites: A link that cannot be joined says why", () => {
   it("link already used", async () => {
-    stubApi({ join: [409, { detail: "Invite already used" }] });
+    stubApi({ preview: [409, { detail: "Invite already used" }] });
     launchWith("/", T2S);
     render(<App />);
 
@@ -181,7 +286,7 @@ describe("invites: A link that cannot be joined says why", () => {
   });
 
   it("unknown link", async () => {
-    stubApi({ join: [404, { detail: "Invite not found" }] });
+    stubApi({ preview: [404, { detail: "Invite not found" }] });
     launchWith("/", T2S);
     render(<App />);
 
@@ -189,12 +294,32 @@ describe("invites: A link that cannot be joined says why", () => {
     expect(screen.getByRole("link", { name: "Мої ігри" })).toBeTruthy();
   });
 
-  it("no connection while joining", async () => {
-    stubApi({ join: "network" });
+  it("no connection while reading the invite", async () => {
+    stubApi({ preview: "network" });
     launchWith("/", T2S);
     render(<App />);
 
     expect(await screen.findByText("Не вдалося приєднатися до гри.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Мої ігри" })).toBeTruthy();
+  });
+
+  it("no connection while joining", async () => {
+    stubApi({ join: "network" });
+    launchWith("/", T2S);
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Прийняти" }));
+
+    expect(await screen.findByText("Не вдалося приєднатися до гри.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Мої ігри" })).toBeTruthy();
+  });
+
+  it("someone else accepted first", async () => {
+    stubApi({ join: [409, { detail: "Invite already used" }] });
+    launchWith("/", T2S);
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: "Прийняти" }));
+
+    expect(await screen.findByText("Це запрошення вже прийняв інший гравець.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Мої ігри" })).toBeTruthy();
   });
 });

@@ -6,14 +6,19 @@ pytest`; frontend: the same with `frontend-check vitest run`.
 
 ## 1. Red scenario tests
 
-- [ ] 1.1 `backend/tests/test_invites.py`: one test per scenario of "An invite can be read before joining", with the
+- [x] 1.1 `backend/tests/test_invites.py`: one test per scenario of "An invite can be read before joining", with the
   existing helpers (`invite`, `join`, `as_player`, `login` for Telegram user `3003` without a player)
-- [ ] 1.2 `frontend/src/Invites.test.tsx`: a stub for `POST /api/invites/preview`; one test per scenario of "The invite
+- [x] 1.2 `frontend/src/Invites.test.tsx`: a stub for `POST /api/invites/preview`; one test per scenario of "The invite
   screen shows who invites and the penalties"; the scenarios of "The web app joins the game it was launched with" and
   "A link that cannot be joined says why" rewritten in place to the delta (same data and roles), plus the new ones
   ("Declining the invite", "A new player declines", "The opponent opens the link again", "No connection while reading the invite",
   "Someone else accepted first")
-- [ ] 1.3 Run pytest and Vitest, quote the failing lines and both summaries; every other test still passes
+- [x] 1.3 Run pytest and Vitest, quote the failing lines and both summaries; every other test still passes —
+  pytest `7 failed, 129 passed`: all 7 preview tests, `assert 404 == 200` (no route yet), `{'detail': 'Not Found'}`
+  for the unknown token, `assert 404 == 401` without a login. Vitest `Tests  12 failed | 103 passed (115)`: the two
+  invite-screen tests, five of the launch flow (registered, new player, declining, a new player declines, reload) and
+  all five error tests; "The opponent opens the link again" and "Launch without a start parameter" pass already, since
+  they keep today's behaviour. ESLint and tsc clean
 - [ ] 1.4 Commit the failing tests on their own (`test: red scenarios for reading an invite before accepting it`)
 
 ## 2. Backend
