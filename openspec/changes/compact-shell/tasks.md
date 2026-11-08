@@ -52,8 +52,8 @@ vitest run`.
   `join-failed`, `ready`), not only in `ready`. Verify every Vitest test passes, ESLint and tsc clean; commit
   (`fix(web): name in the header on the invite screen and its messages`) — `Tests  127 passed (127)`; ESLint and
   tsc clean
-- [ ] 2.8 Ask the human before a second `fly deploy`; deploy, run `node scripts/hosting-check.mjs` and quote its last
-  line
+- [x] 2.8 Ask the human before a second `fly deploy`; deploy, run `node scripts/hosting-check.mjs` and quote its last
+  line — the human said yes; release 6, `started`, `1 total, 1 passing`; `hosting-check: OK (https://gym-challenge.fly.dev)`
 
 ## 3. Hosted check
 
